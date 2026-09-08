@@ -1,0 +1,259 @@
+import React, { useState } from 'react';
+import {
+  Sun,
+  Moon,
+  Bell,
+  Search,
+  ChevronDown,
+  UserCheck,
+  Shield,
+  LogOut,
+  Mail,
+  ExternalLink
+} from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
+import { useNotifications } from '../../context/NotificationContext';
+import { useSystem } from '../../context/SystemContext';
+import { Button } from '../common/Button';
+
+interface HeaderProps {
+  onOpenCommandPalette: () => void;
+  onToggleSidebar?: () => void;
+}
+
+export const Header: React.FC<HeaderProps> = ({ onOpenCommandPalette }) => {
+  const { currentUser, users, switchUser, roles } = useAuth();
+  const { theme, toggleTheme } = useTheme();
+  const { notifications, unreadCount, markAsRead, markAllAsRead, openEmailPreview } = useNotifications();
+  const { settings } = useSystem();
+
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showNotifMenu, setShowNotifMenu] = useState(false);
+
+  return (
+    <header className="sticky top-0 z-30 flex items-center justify-between h-16 px-4 sm:px-6 bg-card/85 backdrop-blur-md border-b border-border/80 transition-colors">
+      {/* Left: Branding & Search shortcut */}
+      <div className="flex items-center gap-3 sm:gap-4">
+        <div className="flex items-center gap-2.5">
+          {/* Logo: white bg in light mode so red logo pops; dark bg container in dark mode */}
+          <div className="w-9 h-9 rounded-xl overflow-hidden bg-black flex items-center justify-center shadow-sm border border-border/40">
+            <img src="/rdx-logo.png" alt="RDX" className="w-8 h-8 object-contain" />
+          </div>
+          <div className="hidden md:block">
+            <h1 className="text-sm font-bold text-foreground leading-tight tracking-tight">
+              {settings.branding.companyName}
+            </h1>
+            <p className="text-[11px] text-muted-foreground font-medium">
+              {settings.branding.appTitle}
+            </p>
+          </div>
+        </div>
+
+        {/* Global Quick Search Button (Ctrl+K) */}
+        <button
+          onClick={onOpenCommandPalette}
+          className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/60 hover:bg-muted border border-border/60 text-xs text-muted-foreground hover:text-foreground transition-all ml-2"
+        >
+          <Search className="w-3.5 h-3.5" />
+          <span>Quick search or command...</span>
+          <kbd className="hidden lg:inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono bg-background border border-border text-muted-foreground ml-2 shadow-xs">
+            Ctrl K
+          </kbd>
+        </button>
+      </div>
+
+      {/* Right controls: Theme, Notifications, Persona Switcher, Profile */}
+      <div className="flex items-center gap-2 sm:gap-3">
+        {/* Mobile Search Icon */}
+        <button
+          onClick={onOpenCommandPalette}
+          className="sm:hidden p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg"
+          title="Search"
+        >
+          <Search className="w-4 h-4" />
+        </button>
+
+        {/* Light/Dark Mode Toggle */}
+        <button
+          onClick={toggleTheme}
+          className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
+          title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+        >
+          {theme === 'dark' ? (
+            <Sun className="w-4 h-4 text-amber-400" />
+          ) : (
+            <Moon className="w-4 h-4 text-slate-600" />
+          )}
+        </button>
+
+        {/* Notifications Popover */}
+        <div className="relative">
+          <button
+            onClick={() => {
+              setShowNotifMenu(!showNotifMenu);
+              setShowUserMenu(false);
+            }}
+            className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg relative transition-colors"
+            title="Notifications"
+          >
+            <Bell className="w-4 h-4" />
+            {unreadCount > 0 && (
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-primary animate-pulse" />
+            )}
+          </button>
+
+          {showNotifMenu && (
+            <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-card border border-border shadow-xl z-50 overflow-hidden animate-fade-in">
+              <div className="p-3.5 border-b border-border/80 flex items-center justify-between bg-muted/20">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-foreground uppercase tracking-wider">
+                    Notifications
+                  </span>
+                  {unreadCount > 0 && (
+                    <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-primary">
+                      {unreadCount} new
+                    </span>
+                  )}
+                </div>
+                {unreadCount > 0 && (
+                  <button
+                    onClick={markAllAsRead}
+                    className="text-[11px] text-primary hover:underline font-medium"
+                  >
+                    Mark all read
+                  </button>
+                )}
+              </div>
+
+              <div className="max-h-80 overflow-y-auto divide-y divide-border/40">
+                {notifications.length === 0 ? (
+                  <div className="p-6 text-center text-xs text-muted-foreground">
+                    No active notifications
+                  </div>
+                ) : (
+                  notifications.slice(0, 10).map((notif) => (
+                    <div
+                      key={notif.id}
+                      className={`p-3 text-xs transition-colors hover:bg-muted/40 cursor-pointer ${
+                        !notif.read ? 'bg-primary/[0.03]' : ''
+                      }`}
+                      onClick={() => markAsRead(notif.id)}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <span className="font-semibold text-foreground">{notif.title}</span>
+                        <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+                          {new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                      <p className="text-muted-foreground mt-0.5 leading-relaxed">{notif.message}</p>
+                      
+                      {/* If notification includes simulated enterprise email */}
+                      {notif.emailPreview && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openEmailPreview(notif.emailPreview);
+                            setShowNotifMenu(false);
+                          }}
+                          className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-medium text-primary hover:underline"
+                        >
+                          <Mail className="w-3 h-3" />
+                          View Simulated Email
+                        </button>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Persona / Role Switcher - Essential for instant multi-role testing! */}
+        <div className="relative">
+          <button
+            onClick={() => {
+              setShowUserMenu(!showUserMenu);
+              setShowNotifMenu(false);
+            }}
+            className="flex items-center gap-2 pl-2 pr-2.5 py-1.5 rounded-xl hover:bg-muted/60 border border-border/60 transition-all text-left"
+          >
+            <img
+              src={currentUser.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100'}
+              alt={currentUser.name}
+              className="w-7 h-7 rounded-lg object-cover ring-1 ring-border"
+            />
+            <div className="hidden sm:block text-xs">
+              <div className="font-semibold text-foreground leading-tight flex items-center gap-1">
+                <span>{currentUser.name}</span>
+              </div>
+              <div className="text-[10px] text-primary font-medium flex items-center gap-0.5">
+                <Shield className="w-2.5 h-2.5" />
+                <span>{currentUser.roleName}</span>
+              </div>
+            </div>
+            <ChevronDown className="w-3.5 h-3.5 text-muted-foreground ml-0.5" />
+          </button>
+
+          {showUserMenu && (
+            <div className="absolute right-0 mt-2 w-72 rounded-2xl bg-card border border-border shadow-xl z-50 overflow-hidden animate-fade-in">
+              <div className="p-3.5 border-b border-border/80 bg-muted/20">
+                <p className="text-xs font-bold text-foreground">Interactive Persona Switcher</p>
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  Instantly simulate any enterprise role & test dynamic RBAC:
+                </p>
+              </div>
+
+              <div className="p-2 max-h-72 overflow-y-auto space-y-1">
+                {users.map((u) => {
+                  const isSelected = u.id === currentUser.id;
+                  const role = roles.find(r => r.id === u.roleId);
+                  return (
+                    <button
+                      key={u.id}
+                      onClick={() => {
+                        switchUser(u.id);
+                        setShowUserMenu(false);
+                      }}
+                      className={`w-full flex items-center gap-2.5 p-2 rounded-xl text-left text-xs transition-all ${
+                        isSelected
+                          ? 'bg-primary/10 text-primary font-semibold border border-primary/20'
+                          : 'hover:bg-muted text-foreground'
+                      }`}
+                    >
+                      <img
+                        src={u.avatar}
+                        alt={u.name}
+                        className="w-7 h-7 rounded-lg object-cover shrink-0"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <span className="truncate font-medium">{u.name}</span>
+                          {isSelected && <UserCheck className="w-3.5 h-3.5 text-primary" />}
+                        </div>
+                        <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground truncate">
+                          <span
+                            className="w-1.5 h-1.5 rounded-full shrink-0"
+                            style={{ backgroundColor: role?.color || '#6366f1' }}
+                          />
+                          <span>{u.roleName}</span>
+                          {u.teamName && <span>• {u.teamName}</span>}
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="p-2 border-t border-border/80 bg-muted/10 flex items-center justify-between text-[11px] text-muted-foreground px-3">
+                <span>Signed in as <strong>{currentUser.roleName}</strong></span>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </header>
+  );
+};
