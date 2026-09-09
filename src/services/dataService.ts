@@ -140,6 +140,7 @@ class DataService {
     };
     logs.unshift(newLog);
     storage.set('audit_logs', logs.slice(0, 500));
+    api.addAuditLog(newLog).catch(() => {});
   }
 
   public getAuditLogs(): AuditLog[] {
@@ -182,6 +183,7 @@ class DataService {
     };
     notifs.unshift(newNotif);
     storage.set('notifications', notifs);
+    api.addNotification(newNotif).catch(() => {});
     return newNotif;
   }
 
@@ -257,6 +259,7 @@ class DataService {
       this.logAudit('USER_CREATE', 'User', savedUser.id, `Created new enterprise user ${savedUser.name} (${savedUser.email})`, actor, undefined, JSON.stringify(savedUser));
     }
     storage.set('users', users);
+    api.saveUser(savedUser).catch(() => {});
     return savedUser;
   }
 
@@ -267,6 +270,7 @@ class DataService {
     const oldStatus = user.status;
     user.status = user.status === 'active' ? 'disabled' : 'active';
     storage.set('users', users);
+    api.saveUser(user).catch(() => {});
     this.logAudit('USER_DISABLE', 'User', user.id, `Changed status of ${user.name} from ${oldStatus} to ${user.status}`, actor);
     return user;
   }
@@ -277,6 +281,7 @@ class DataService {
     if (!user) return;
     users = users.filter(u => u.id !== userId);
     storage.set('users', users);
+    api.deleteUser(userId).catch(() => {});
     this.logAudit('USER_DELETE', 'User', userId, `Deleted user account ${user.name} (${user.email})`, actor);
   }
 
@@ -311,6 +316,7 @@ class DataService {
       this.logAudit('ROLE_CREATE', 'Role', savedRole.id, `Created dynamic role ${savedRole.name} with ${savedRole.permissions.length} permissions`, actor, undefined, JSON.stringify(savedRole));
     }
     storage.set('roles', roles);
+    // Roles are not in the API yet, but persist via bootstrap
     return savedRole;
   }
 
@@ -403,6 +409,7 @@ class DataService {
       this.logAudit('TEAM_CREATE', 'Team', savedTeam.id, `Created new team ${savedTeam.name} with initial budget $${initialBudget.toLocaleString()}`, actor, undefined, JSON.stringify(savedTeam));
     }
     storage.set('teams', teams);
+    api.saveTeam(savedTeam).catch(() => {});
     return savedTeam;
   }
 
@@ -432,6 +439,7 @@ class DataService {
     }
 
     storage.set('teams', teams);
+    api.saveTeam(team).catch(() => {});
 
     this.addBudgetTransaction({
       teamId: team.id,
@@ -467,6 +475,7 @@ class DataService {
     };
     txns.unshift(newTxn);
     storage.set('budget_transactions', txns);
+    api.addBudgetTransaction(newTxn).catch(() => {});
   }
 
   // --- Gift Requests & Approvals ---
@@ -615,6 +624,13 @@ class DataService {
 
     requests.unshift(newRequest);
     storage.set('requests', requests);
+    api.createRequest({
+      ...newRequest,
+      requestDate: newRequest.requestDate,
+      submittedByUserId: newRequest.submittedByUserId,
+      submittedByUserName: newRequest.submittedByUserName,
+      submittedByUserEmail: newRequest.submittedByUserEmail
+    }).catch(() => {});
 
     // Notify approvers & team
     this.notify(
@@ -657,6 +673,7 @@ class DataService {
     req.comments.push(comment);
     req.updatedAt = new Date().toISOString();
     storage.set('requests', requests);
+    api.updateRequest(req.id, { comments: req.comments }).catch(() => {});
 
     this.notify(
       req.submittedByUserId,
@@ -721,6 +738,7 @@ class DataService {
       req.status = 'rejected';
       req.updatedAt = new Date().toISOString();
       storage.set('requests', requests);
+      api.updateRequest(req.id, { status: req.status, approvalHistory: req.approvalHistory }).catch(() => {});
 
       this.notify(
         req.submittedByUserId,
@@ -742,6 +760,7 @@ class DataService {
       req.status = 'under_review';
       req.updatedAt = new Date().toISOString();
       storage.set('requests', requests);
+      api.updateRequest(req.id, { status: req.status, approvalHistory: req.approvalHistory }).catch(() => {});
 
       this.notify(
         req.submittedByUserId,
@@ -774,6 +793,7 @@ class DataService {
 
       req.updatedAt = new Date().toISOString();
       storage.set('requests', requests);
+      api.updateRequest(req.id, { status: req.status, currentApprovalStepIndex: req.currentApprovalStepIndex, currentApproverRole: req.currentApproverRole, approvalHistory: req.approvalHistory }).catch(() => {});
 
       this.notify(
         'approvers_' + req.currentApproverRole.toLowerCase(),
@@ -802,6 +822,8 @@ class DataService {
 
     storage.set('teams', teams);
     storage.set('requests', requests);
+    api.updateRequest(req.id, { status: req.status, approvedAmount: req.approvedAmount, approvalHistory: req.approvalHistory }).catch(() => {});
+    api.saveTeam(team).catch(() => {});
 
     // Record Budget Transaction
     this.addBudgetTransaction({
@@ -910,6 +932,7 @@ class DataService {
       this.logAudit('FORM_CREATE', 'Form', saved.id, `Created new dynamic form "${saved.title}" with ${saved.fields.length} fields`, actor, undefined, JSON.stringify(saved));
     }
     storage.set('forms', forms);
+    api.saveForm(saved).catch(() => {});
     return saved;
   }
 
@@ -959,6 +982,7 @@ class DataService {
 
     assignments.push(newAssignment);
     storage.set('form_assignments', assignments);
+    api.saveFormAssignment(newAssignment).catch(() => {});
 
     // Notify recipients
     targetUserIds.forEach(uid => {
@@ -1025,6 +1049,7 @@ class DataService {
       budgetRules: { ...current.budgetRules, ...settings.budgetRules }
     };
     storage.set('settings', updated);
+    api.updateSettings(updated).catch(() => {});
     this.logAudit('SETTINGS_UPDATE', 'SystemSettings', 'system', 'Updated enterprise system settings and branding', actor);
     return updated;
   }
