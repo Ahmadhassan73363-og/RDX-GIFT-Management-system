@@ -17,6 +17,9 @@ export const storage = {
   set: <T>(key: string, value: T): void => {
     try {
       localStorage.setItem(PREFIX + key, JSON.stringify(value));
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('storage-synced', { detail: { key } }));
+      }
     } catch (err) {
       console.error(`Error saving key ${key} to storage`, err);
     }
@@ -25,6 +28,9 @@ export const storage = {
   remove: (key: string): void => {
     try {
       localStorage.removeItem(PREFIX + key);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('storage-synced', { detail: { key } }));
+      }
     } catch (err) {
       console.error(`Error removing key ${key} from storage`, err);
     }
@@ -37,6 +43,9 @@ export const storage = {
           localStorage.removeItem(k);
         }
       });
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('storage-synced', { detail: { key: 'all' } }));
+      }
     } catch (err) {
       console.error('Error clearing storage', err);
     }

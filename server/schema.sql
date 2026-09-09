@@ -86,6 +86,16 @@ CREATE TABLE requests (
   attachments JSONB DEFAULT '[]'::jsonb,
   comments JSONB DEFAULT '[]'::jsonb,
   approval_history JSONB DEFAULT '[]'::jsonb,
+  date DATE,
+  department VARCHAR(100),
+  agent_or_team_name VARCHAR(150),
+  business_name VARCHAR(150),
+  type_of_foc VARCHAR(100),
+  system_invoice_no VARCHAR(100),
+  sample_sku VARCHAR(100),
+  sample_sku_qty INT DEFAULT 0,
+  sample_sku_cost_per_unit NUMERIC(15, 2) DEFAULT 0,
+  sample_sku_total NUMERIC(15, 2) DEFAULT 0,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );

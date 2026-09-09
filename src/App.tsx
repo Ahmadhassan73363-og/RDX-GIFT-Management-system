@@ -23,6 +23,13 @@ const AppContent: React.FC = () => {
   const [currentPath, setCurrentPath] = useState<string>('/dashboard');
   const [targetRequestId, setTargetRequestId] = useState<string | undefined>(undefined);
   const [isGlobalNewRequestModalOpen, setIsGlobalNewRequestModalOpen] = useState(false);
+  const [, setTick] = useState(0);
+
+  useEffect(() => {
+    const handleSync = () => setTick(t => t + 1);
+    window.addEventListener('storage-synced', handleSync);
+    return () => window.removeEventListener('storage-synced', handleSync);
+  }, []);
 
   // Parse any initial query params (e.g. from command palette navigation)
   const handleNavigate = (path: string) => {

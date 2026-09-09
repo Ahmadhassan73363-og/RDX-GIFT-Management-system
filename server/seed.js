@@ -60,7 +60,7 @@ async function seed() {
           t.department || '',
           t.leadId || null,
           JSON.stringify(t.memberIds || []),
-          t.totalAllocatedBudget || 0,
+          t.allocatedBudget ?? t.totalAllocatedBudget ?? 0,
           t.spentBudget || 0,
           t.fiscalYear || '2026',
           t.color || '#3b82f6',
