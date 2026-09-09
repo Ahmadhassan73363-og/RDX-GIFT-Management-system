@@ -70,14 +70,14 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate, onOpen
   return (
     <div className="space-y-6">
       {/* Top Banner with Executive Greeting & Quick Actions */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary/95 via-indigo-600 to-indigo-700 text-white p-6 sm:p-8 shadow-elevated">
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div className="space-y-1.5 max-w-2xl">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/15 text-xs font-semibold backdrop-blur-sm">
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary/95 via-indigo-600 to-indigo-700 text-white p-5 sm:p-7 lg:p-8 shadow-elevated">
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
+          <div className="space-y-2 max-w-2xl">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/15 text-[11px] sm:text-xs font-semibold backdrop-blur-sm">
               <Sparkles className="w-3.5 h-3.5 text-amber-300" />
               <span>Enterprise Budget Management Console</span>
             </div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight">
               Welcome, {currentUser.name}
             </h1>
             <p className="text-xs sm:text-sm text-indigo-100 font-normal leading-relaxed">
@@ -85,13 +85,13 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate, onOpen
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 shrink-0 w-full sm:w-auto">
             <Button
               variant="glass"
               size="md"
               onClick={onOpenNewRequest}
               leftIcon={<Plus className="w-4 h-4 text-primary" />}
-              className="bg-white text-slate-900 hover:bg-white/90 font-semibold"
+              className="bg-white text-slate-900 hover:bg-white/90 font-semibold justify-center w-full sm:w-auto shadow-sm"
             >
               New Request
             </Button>
@@ -100,7 +100,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate, onOpen
                 variant="outline"
                 size="md"
                 onClick={() => onNavigate('/approvals')}
-                className="border-white/30 text-white hover:bg-white/10"
+                className="border-white/30 text-white hover:bg-white/10 justify-center w-full sm:w-auto"
               >
                 Review Approvals ({pendingRequests})
               </Button>
@@ -227,7 +227,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate, onOpen
         {/* Team Budget Utilization Bars */}
         <Card className="lg:col-span-2">
           <CardHeader>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <CardTitle>Team Budget Utilization</CardTitle>
                 <p className="text-xs text-muted-foreground mt-0.5">
@@ -239,6 +239,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate, onOpen
                 size="sm"
                 onClick={() => onNavigate('/budgets')}
                 rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
+                className="self-start sm:self-auto shrink-0"
               >
                 Manage Budgets
               </Button>
@@ -329,7 +330,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate, onOpen
         {/* Recent Requests */}
         <Card className="lg:col-span-2">
           <CardHeader>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <CardTitle>Recent Requests</CardTitle>
                 <p className="text-xs text-muted-foreground mt-0.5">
@@ -341,14 +342,15 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate, onOpen
                 size="sm"
                 onClick={() => onNavigate('/requests')}
                 rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
+                className="self-start sm:self-auto shrink-0"
               >
                 View All
               </Button>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-xs">
+            <div className="overflow-x-auto -mx-2 sm:mx-0 px-2 sm:px-0">
+              <table className="w-full text-left border-collapse text-xs min-w-[560px]">
                 <thead>
                   <tr className="border-b border-border/80 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
                     <th className="pb-3 pl-1">Request #</th>
