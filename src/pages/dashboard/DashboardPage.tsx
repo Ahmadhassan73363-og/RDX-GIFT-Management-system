@@ -78,7 +78,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate, onOpen
               <span>Enterprise Budget Management Console</span>
             </div>
             <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight">
-              Welcome, {currentUser.name}
+              Welcome back, {currentUser.name}
             </h1>
             <p className="text-xs sm:text-sm text-indigo-100 font-normal leading-relaxed">
               Monitoring <strong className="text-white">{teams.length} teams</strong> and <strong className="text-white">${totalAllocated.toLocaleString()}</strong> in allocated corporate allowances for fiscal year 2026.
@@ -269,10 +269,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate, onOpen
                         </span>
                         <span
                           className={`font-bold px-1.5 py-0.5 rounded text-[10px] ${isCritical
-                              ? 'bg-rose-500/10 text-rose-500'
-                              : isWarning
-                                ? 'bg-amber-500/10 text-amber-500'
-                                : 'bg-emerald-500/10 text-emerald-500'
+                            ? 'bg-rose-500/10 text-rose-500'
+                            : isWarning
+                              ? 'bg-amber-500/10 text-amber-500'
+                              : 'bg-emerald-500/10 text-emerald-500'
                             }`}
                         >
                           {burnPct}%
@@ -282,10 +282,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate, onOpen
                     <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
                       <div
                         className={`h-full rounded-full transition-all duration-700 ${isCritical
-                            ? 'bg-rose-500'
-                            : isWarning
-                              ? 'bg-amber-500'
-                              : 'bg-primary'
+                          ? 'bg-rose-500'
+                          : isWarning
+                            ? 'bg-amber-500'
+                            : 'bg-primary'
                           }`}
                         style={{ width: `${Math.min(100, burnPct)}%` }}
                       />
