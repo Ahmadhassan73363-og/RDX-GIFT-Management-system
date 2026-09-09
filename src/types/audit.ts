@@ -21,6 +21,7 @@ export type AuditActionType =
   | 'REQUEST_REJECT'
   | 'REQUEST_CHANGE_REQUESTED'
   | 'REQUEST_CANCEL'
+  | 'SHIPMENT_STATUS_UPDATE'
   | 'SETTINGS_UPDATE';
 
 export interface AuditLog {

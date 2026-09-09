@@ -5,12 +5,24 @@ export type RequestStatus =
   | 'submitted'
   | 'under_review'
   | 'pending_executive'
-  | 'pending_assistant'
+  | 'pending_manager'
+  | 'pending_hod'
+  | 'pending_assistant' // legacy alias
   | 'pending_president'
   | 'approved'
   | 'rejected'
   | 'completed'
   | 'cancelled';
+
+export type ShipmentStatus = 'pending' | 'ready_to_dispatch' | 'delivered';
+
+export interface SkuItem {
+  id: string;
+  sampleSku: string;
+  sampleSkuQty: number | '';
+  sampleSkuCostPerUnit: number | '';
+  sampleSkuTotal: number;
+}
 
 export type RequestPriority = 'low' | 'normal' | 'high' | 'urgent';
 
@@ -54,6 +66,9 @@ export interface GiftRequest {
   totalApprovalSteps: number;
   currentApproverRole: string;
 
+  // Shipment Lifecycle Field
+  shipmentStatus?: ShipmentStatus;
+
   // Specific FOC Sample Tracking Fields
   date?: string;
   department?: string;
@@ -65,6 +80,9 @@ export interface GiftRequest {
   sampleSkuQty?: number;
   sampleSkuCostPerUnit?: number;
   sampleSkuTotal?: number;
+
+  // Multiple SKU Breakdown
+  skuItems?: SkuItem[];
   
   // Budget snapshot at submission / evaluation
   teamRemainingBudgetAtRequest: number;

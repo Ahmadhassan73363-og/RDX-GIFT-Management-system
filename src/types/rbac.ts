@@ -52,7 +52,9 @@ export interface Role {
 export type DefaultRoleName =
   | 'Super Admin'
   | 'Admin'
-  | 'Assistant'
-  | 'President'
   | 'Executive'
+  | 'Manager'
+  | 'HOD'
+  | 'President'
+  | 'Assistant'
   | 'Viewer';

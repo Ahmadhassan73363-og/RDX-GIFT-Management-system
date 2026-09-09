@@ -96,6 +96,8 @@ CREATE TABLE requests (
   sample_sku_qty INT DEFAULT 0,
   sample_sku_cost_per_unit NUMERIC(15, 2) DEFAULT 0,
   sample_sku_total NUMERIC(15, 2) DEFAULT 0,
+  sku_items JSONB DEFAULT '[]'::jsonb,
+  shipment_status VARCHAR(50) DEFAULT 'pending',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );

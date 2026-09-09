@@ -15,9 +15,12 @@ import {
   ShieldCheck,
   Award,
   ChevronRight,
-  Printer
+  Printer,
+  Truck,
+  PackageCheck,
+  PackageOpen
 } from 'lucide-react';
-import { GiftRequest, RequestStatus } from '../../types/request';
+import { GiftRequest, RequestStatus, ShipmentStatus } from '../../types/request';
 import { useAuth } from '../../context/AuthContext';
 import { dataService } from '../../services/dataService';
 import { Button } from '../../components/common/Button';
@@ -54,18 +57,30 @@ export const RequestDetailPage: React.FC<RequestDetailPageProps> = ({ requestId,
     );
   }
 
-  const isPending = ['submitted', 'under_review', 'pending_executive', 'pending_assistant', 'pending_president'].includes(request.status);
+  const isPending = ['submitted', 'under_review', 'pending_executive', 'pending_manager', 'pending_hod', 'pending_assistant', 'pending_president'].includes(request.status);
   const canApprove = hasPermission('approvals:approve');
   const canOverride = hasPermission('budgets:override');
+  const isSuperAdmin = currentUser.roleName === 'Super Admin';
   const hasSufficientBudget = team.remainingBudget >= request.budgetAmount;
 
-  // Stages
+  // 4-Stage approval pipeline: Executive -> Manager -> HOD -> President
   const stages = [
-    { order: 1, role: 'Executive', label: 'Executive Committee Review' },
-    { order: 2, role: 'Assistant', label: 'Assistant Policy Verification' },
-    { order: 3, role: 'President', label: 'Presidential Sign-Off' },
-    { order: 4, role: 'Admin', label: 'Admin Budget Execution' },
+    { order: 1, role: 'Executive', label: 'Executive Review' },
+    { order: 2, role: 'Manager', label: 'Manager Verification' },
+    { order: 3, role: 'HOD', label: 'HOD Approval' },
+    { order: 4, role: 'President', label: 'Presidential Sign-Off' },
   ];
+
+  const shipmentStatusConfig: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
+    pending: { label: 'Pending', color: 'bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-400', icon: <Clock className="w-4 h-4" /> },
+    ready_to_dispatch: { label: 'Ready to Dispatch', color: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-400', icon: <PackageCheck className="w-4 h-4" /> },
+    delivered: { label: 'Delivered', color: 'bg-blue-500/10 border-blue-500/30 text-blue-700 dark:text-blue-400', icon: <Truck className="w-4 h-4" /> },
+  };
+
+  const handleMarkDelivered = () => {
+    dataService.updateShipmentStatus(request.id, 'delivered', currentUser);
+    onUpdate();
+  };
 
   const handleOpenAction = (type: 'approve' | 'reject' | 'request_changes' | 'override_approve') => {
     setActionType(type);
@@ -486,6 +501,54 @@ export const RequestDetailPage: React.FC<RequestDetailPageProps> = ({ requestId,
                     ${(request.budgetAmount || 0).toLocaleString()} has been charged to {team.name}'s fiscal ledger.
                   </p>
                 </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Shipment Status Card */}
+          <Card className="border-primary/20">
+            <CardHeader>
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Truck className="w-4 h-4 text-primary" />
+                Shipment Status
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {(() => {
+                const shipStatus = request.shipmentStatus || 'pending';
+                const cfg = shipmentStatusConfig[shipStatus] || shipmentStatusConfig.pending;
+                return (
+                  <div className={`p-3 rounded-xl border flex items-center gap-2.5 font-semibold text-sm ${cfg.color}`}>
+                    {cfg.icon}
+                    <span>{cfg.label}</span>
+                  </div>
+                );
+              })()}
+
+              {request.shipmentStatus === 'pending' && (
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  Shipment is pending final approval. Status will auto-update to <strong>Ready to Dispatch</strong> once all stages pass.
+                </p>
+              )}
+              {request.shipmentStatus === 'ready_to_dispatch' && (
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  All approvals cleared. Package is ready to dispatch.
+                </p>
+              )}
+              {request.shipmentStatus === 'delivered' && (
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  Package has been delivered to the recipient.
+                </p>
+              )}
+
+              {isSuperAdmin && request.shipmentStatus === 'ready_to_dispatch' && (
+                <button
+                  onClick={handleMarkDelivered}
+                  className="w-full mt-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition-colors"
+                >
+                  <Truck className="w-3.5 h-3.5" />
+                  Mark as Delivered
+                </button>
               )}
             </CardContent>
           </Card>

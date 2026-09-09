@@ -243,7 +243,8 @@ export const RequestsListPage: React.FC<RequestsListPageProps> = ({
             >
               <option value="ALL">All Statuses</option>
               <option value="pending_executive">Pending Executive</option>
-              <option value="pending_assistant">Pending Assistant</option>
+              <option value="pending_manager">Pending Manager</option>
+              <option value="pending_hod">Pending HOD</option>
               <option value="pending_president">Pending President</option>
               <option value="submitted">Submitted</option>
               <option value="under_review">Under Review</option>
@@ -325,6 +326,7 @@ export const RequestsListPage: React.FC<RequestsListPageProps> = ({
                   <th className="p-3.5">Retail / Discount</th>
                   <th className="p-3.5">Budget Charge</th>
                   <th className="p-3.5">Status</th>
+                  <th className="p-3.5">Shipment</th>
                   <th className="p-3.5">Priority</th>
                   <th className="p-3.5 text-right pr-4">Date</th>
                 </tr>
@@ -372,6 +374,20 @@ export const RequestsListPage: React.FC<RequestsListPageProps> = ({
                       </td>
                       <td className="p-3.5">
                         <StatusBadge status={req.status} size="sm" />
+                      </td>
+                      <td className="p-3.5">
+                        {/* Shipment status pill */}
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
+                          req.shipmentStatus === 'delivered'
+                            ? 'bg-blue-500/10 border-blue-500/30 text-blue-700 dark:text-blue-400'
+                            : req.shipmentStatus === 'ready_to_dispatch'
+                            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-400'
+                            : 'bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-400'
+                        }`}>
+                          {req.shipmentStatus === 'delivered' ? '📦 Delivered'
+                            : req.shipmentStatus === 'ready_to_dispatch' ? '✅ Ready'
+                            : '⏳ Pending'}
+                        </span>
                       </td>
                       <td className="p-3.5">
                         <PriorityBadge priority={req.priority} size="sm" />

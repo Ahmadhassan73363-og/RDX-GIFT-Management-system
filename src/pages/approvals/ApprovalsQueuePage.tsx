@@ -28,7 +28,7 @@ interface ApprovalsQueuePageProps {
 export const ApprovalsQueuePage: React.FC<ApprovalsQueuePageProps> = ({ onNavigateToRequest }) => {
   const { currentUser, hasPermission } = useAuth();
   const [refreshKey, setRefreshKey] = useState(0);
-  const [activeStageFilter, setActiveStageFilter] = useState<'ALL' | 'EXECUTIVE' | 'ASSISTANT' | 'PRESIDENT' | 'ADMIN'>('ALL');
+  const [activeStageFilter, setActiveStageFilter] = useState<'ALL' | 'EXECUTIVE' | 'MANAGER' | 'HOD' | 'PRESIDENT'>('ALL');
 
   // Modal action state
   const [selectedRequest, setSelectedRequest] = useState<GiftRequest | null>(null);
@@ -43,14 +43,14 @@ export const ApprovalsQueuePage: React.FC<ApprovalsQueuePageProps> = ({ onNaviga
 
   // Pending approval statuses
   const pendingRequests = requests.filter(r =>
-    ['submitted', 'under_review', 'pending_executive', 'pending_assistant', 'pending_president'].includes(r.status)
+    ['submitted', 'under_review', 'pending_executive', 'pending_manager', 'pending_hod', 'pending_assistant', 'pending_president'].includes(r.status)
   );
 
   const filteredRequests = pendingRequests.filter(r => {
     if (activeStageFilter === 'EXECUTIVE') return r.status === 'pending_executive' || r.status === 'submitted';
-    if (activeStageFilter === 'ASSISTANT') return r.status === 'pending_assistant';
+    if (activeStageFilter === 'MANAGER') return r.status === 'pending_manager';
+    if (activeStageFilter === 'HOD') return r.status === 'pending_hod';
     if (activeStageFilter === 'PRESIDENT') return r.status === 'pending_president';
-    if (activeStageFilter === 'ADMIN') return r.currentApprovalStepIndex === 4;
     return true;
   });
 
@@ -128,12 +128,20 @@ export const ApprovalsQueuePage: React.FC<ApprovalsQueuePageProps> = ({ onNaviga
             Executive
           </button>
           <button
-            onClick={() => setActiveStageFilter('ASSISTANT')}
+            onClick={() => setActiveStageFilter('MANAGER')}
             className={`px-3 py-1.5 rounded-lg font-medium transition-all ${
-              activeStageFilter === 'ASSISTANT' ? 'bg-card text-foreground shadow-xs font-semibold' : 'text-muted-foreground hover:text-foreground'
+              activeStageFilter === 'MANAGER' ? 'bg-card text-foreground shadow-xs font-semibold' : 'text-muted-foreground hover:text-foreground'
             }`}
           >
-            Assistant
+            Manager
+          </button>
+          <button
+            onClick={() => setActiveStageFilter('HOD')}
+            className={`px-3 py-1.5 rounded-lg font-medium transition-all ${
+              activeStageFilter === 'HOD' ? 'bg-card text-foreground shadow-xs font-semibold' : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            HOD
           </button>
           <button
             onClick={() => setActiveStageFilter('PRESIDENT')}

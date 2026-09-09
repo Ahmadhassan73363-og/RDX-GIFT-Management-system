@@ -14,7 +14,7 @@ import {
 import { Role, Permission } from '../types/rbac';
 import { User } from '../types/user';
 import { Team } from '../types/team';
-import { GiftRequest, RequestStatus, RequestPriority } from '../types/request';
+import { GiftRequest, RequestStatus, RequestPriority, SkuItem, ShipmentStatus } from '../types/request';
 import { FormSchema, FormAssignment, FormSubmission } from '../types/form';
 import { BudgetTransaction, BudgetActionType } from '../types/budget';
 import { Notification, NotificationType } from '../types/notification';
@@ -526,6 +526,7 @@ class DataService {
       sampleSkuQty?: number;
       sampleSkuCostPerUnit?: number;
       sampleSkuTotal?: number;
+      skuItems?: SkuItem[];
 
       customerName?: string;
       customerCompany?: string;
@@ -546,11 +547,24 @@ class DataService {
     if (!team) throw new Error('No team allocated');
 
     // Calculate sample SKU cost or retail discount value
-    const numQty = Number(payload.sampleSkuQty) || 0;
+    const hasMultiSku = Array.isArray(payload.skuItems) && payload.skuItems.length > 0;
+    const multiSkuTotal = hasMultiSku
+      ? Math.round(payload.skuItems!.reduce((acc, item) => acc + (Number(item.sampleSkuTotal) || 0), 0) * 100) / 100
+      : 0;
+    const multiSkuQty = hasMultiSku
+      ? payload.skuItems!.reduce((acc, item) => acc + (Number(item.sampleSkuQty) || 0), 0)
+      : 0;
+    const multiSkuSummary = hasMultiSku
+      ? payload.skuItems!.map(item => item.sampleSku).filter(Boolean).join(', ')
+      : '';
+
+    const numQty = hasMultiSku && multiSkuQty > 0 ? multiSkuQty : (Number(payload.sampleSkuQty) || 0);
     const numCostPerUnit = Number(payload.sampleSkuCostPerUnit) || 0;
-    const calculatedSkuTotal = payload.sampleSkuTotal !== undefined
-      ? Number(payload.sampleSkuTotal)
-      : Math.round(numQty * numCostPerUnit * 100) / 100;
+    const calculatedSkuTotal = hasMultiSku && multiSkuTotal > 0
+      ? multiSkuTotal
+      : (payload.sampleSkuTotal !== undefined
+        ? Number(payload.sampleSkuTotal)
+        : Math.round(numQty * numCostPerUnit * 100) / 100);
 
     const discountMultiplier = Math.max(0, 1 - ((payload.discountPercentage || 0) / 100));
     const discountBudgetAmount = Math.round((Number(payload.giftValue) || 0) * discountMultiplier * 100) / 100;
@@ -569,9 +583,11 @@ class DataService {
     const effectiveCompany = payload.businessName || payload.customerCompany || 'Enterprise Client';
     const effectiveName = payload.agentOrTeamName || payload.customerName || actor.name;
     const effectiveCategory = payload.typeOfFoc || payload.giftCategory || 'Standard FOC';
-    const effectiveItem = payload.sampleSku
-      ? (payload.sampleSku + (numQty > 0 ? ` (Qty: ${numQty})` : ''))
-      : (payload.giftItem || 'FOC Sample Item');
+    const effectiveItem = hasMultiSku && multiSkuSummary
+      ? `${multiSkuSummary} (Total Qty: ${numQty})`
+      : (payload.sampleSku
+        ? (payload.sampleSku + (numQty > 0 ? ` (Qty: ${numQty})` : ''))
+        : (payload.giftItem || 'FOC Sample Item'));
 
     const newRequest: GiftRequest = {
       id: 'req-' + Date.now(),
@@ -593,16 +609,18 @@ class DataService {
       currentApprovalStepIndex: 1,
       totalApprovalSteps: 4,
       currentApproverRole: 'Executive',
+      shipmentStatus: 'pending',
       date: effectiveDate,
       department: payload.department || team.name,
       agentOrTeamName: payload.agentOrTeamName || actor.name,
       businessName: effectiveCompany,
       typeOfFoc: effectiveCategory,
       systemInvoiceNo: payload.systemInvoiceNo,
-      sampleSku: payload.sampleSku,
+      sampleSku: hasMultiSku ? (multiSkuSummary || payload.sampleSku) : payload.sampleSku,
       sampleSkuQty: numQty,
       sampleSkuCostPerUnit: numCostPerUnit,
       sampleSkuTotal: calculatedSkuTotal,
+      skuItems: payload.skuItems || [],
       teamRemainingBudgetAtRequest: remainingBudget,
       budgetAfterApproval,
       submittedByUserId: actor.id,
@@ -777,18 +795,18 @@ class DataService {
     }
 
     // Action is APPROVE or OVERRIDE_APPROVE
-    // Sequential pipeline: Step 1 (Executive) -> Step 2 (Assistant) -> Step 3 (President) -> Step 4 (Admin) -> Approved
+    // Sequential pipeline: Step 1 (Executive) -> Step 2 (Manager) -> Step 3 (HOD) -> Step 4 (President) -> Approved
     if (req.currentApprovalStepIndex < req.totalApprovalSteps) {
       req.currentApprovalStepIndex += 1;
       if (req.currentApprovalStepIndex === 2) {
-        req.status = 'pending_assistant';
-        req.currentApproverRole = 'Assistant';
+        req.status = 'pending_manager';
+        req.currentApproverRole = 'Manager';
       } else if (req.currentApprovalStepIndex === 3) {
+        req.status = 'pending_hod';
+        req.currentApproverRole = 'HOD';
+      } else if (req.currentApprovalStepIndex === 4) {
         req.status = 'pending_president';
         req.currentApproverRole = 'President';
-      } else if (req.currentApprovalStepIndex === 4) {
-        req.status = 'submitted'; // or pending admin
-        req.currentApproverRole = 'Admin';
       }
 
       req.updatedAt = new Date().toISOString();
@@ -812,6 +830,7 @@ class DataService {
     // FINAL APPROVAL REACHED (Step 4 completed)
     req.status = 'approved';
     req.approvedAmount = req.budgetAmount;
+    req.shipmentStatus = 'ready_to_dispatch';
     req.updatedAt = new Date().toISOString();
 
     // AUTOMATIC BUDGET DEDUCTION
@@ -822,7 +841,7 @@ class DataService {
 
     storage.set('teams', teams);
     storage.set('requests', requests);
-    api.updateRequest(req.id, { status: req.status, approvedAmount: req.approvedAmount, approvalHistory: req.approvalHistory }).catch(() => {});
+    api.updateRequest(req.id, { status: req.status, approvedAmount: req.approvedAmount, approvalHistory: req.approvalHistory, shipmentStatus: req.shipmentStatus }).catch(() => {});
     api.saveTeam(team).catch(() => {});
 
     // Record Budget Transaction
@@ -885,6 +904,33 @@ class DataService {
       actor,
       JSON.stringify({ remainingBudget: balanceBefore }),
       JSON.stringify({ remainingBudget: balanceAfter })
+    );
+
+    return req;
+  }
+
+  public updateShipmentStatus(
+    requestId: string,
+    shipmentStatus: ShipmentStatus,
+    actor: User
+  ): GiftRequest {
+    const requests = this.getRequests();
+    const req = requests.find(r => r.id === requestId);
+    if (!req) throw new Error('Request not found');
+
+    const oldStatus = req.shipmentStatus || 'pending';
+    req.shipmentStatus = shipmentStatus;
+    req.updatedAt = new Date().toISOString();
+
+    storage.set('requests', requests);
+    api.updateRequest(req.id, { shipmentStatus }).catch(() => {});
+
+    this.logAudit(
+      'SHIPMENT_STATUS_UPDATE',
+      'GiftRequest',
+      req.id,
+      `Changed shipment status of ${req.trackingNumber} from ${oldStatus} to ${shipmentStatus}`,
+      actor
     );
 
     return req;

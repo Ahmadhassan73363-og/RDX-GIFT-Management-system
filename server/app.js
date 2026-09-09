@@ -129,6 +129,8 @@ function mapRequest(row) {
     sampleSkuQty: row.sample_sku_qty != null ? parseInt(row.sample_sku_qty) : undefined,
     sampleSkuCostPerUnit: row.sample_sku_cost_per_unit != null ? parseFloat(row.sample_sku_cost_per_unit) : undefined,
     sampleSkuTotal: row.sample_sku_total != null ? parseFloat(row.sample_sku_total) : undefined,
+    skuItems: Array.isArray(row.sku_items) ? row.sku_items : (typeof row.sku_items === 'string' ? JSON.parse(row.sku_items) : []),
+    shipmentStatus: row.shipment_status || 'pending',
     createdAt: row.created_at,
     updatedAt: row.updated_at
   };
@@ -511,12 +513,14 @@ app.post('/api/requests', async (req, res) => {
          attachments, comments, approval_history, date, department,
          agent_or_team_name, business_name, type_of_foc, system_invoice_no,
          sample_sku, sample_sku_qty, sample_sku_cost_per_unit, sample_sku_total,
+         sku_items, shipment_status,
          created_at, updated_at
        ) VALUES (
          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
          $11, $12, $13, $14, $15, $16, $17, $18, $19, $20,
          $21, $22, $23, $24, $25, $26, $27, $28, $29, $30,
-         $31, $32, $33, $34, $35, $36, $37, $38, $39, $40
+         $31, $32, $33, $34, $35, $36, $37, $38, $39, $40,
+         $41, $42
        )
        ON CONFLICT (id) DO UPDATE SET
          customer_name = COALESCE(EXCLUDED.customer_name, requests.customer_name),
@@ -533,6 +537,8 @@ app.post('/api/requests', async (req, res) => {
          comments = COALESCE(EXCLUDED.comments, requests.comments),
          approval_history = COALESCE(EXCLUDED.approval_history, requests.approval_history),
          attachments = COALESCE(EXCLUDED.attachments, requests.attachments),
+         sku_items = COALESCE(EXCLUDED.sku_items, requests.sku_items),
+         shipment_status = COALESCE(EXCLUDED.shipment_status, requests.shipment_status),
          updated_at = CURRENT_TIMESTAMP
        RETURNING *`,
       [
@@ -574,6 +580,8 @@ app.post('/api/requests', async (req, res) => {
         reqData.sampleSkuQty || 0,
         reqData.sampleSkuCostPerUnit || 0,
         reqData.sampleSkuTotal || 0,
+        JSON.stringify(reqData.skuItems || []),
+        reqData.shipmentStatus || 'pending',
         reqData.createdAt || new Date().toISOString(),
         reqData.updatedAt || new Date().toISOString()
       ]
@@ -605,8 +613,10 @@ app.put('/api/requests/:id', async (req, res) => {
          comments = COALESCE($12, comments),
          approval_history = COALESCE($13, approval_history),
          attachments = COALESCE($14, attachments),
+         shipment_status = COALESCE($15, shipment_status),
+         sku_items = COALESCE($16, sku_items),
          updated_at = CURRENT_TIMESTAMP
-       WHERE id = $15
+       WHERE id = $17
        RETURNING *`,
       [
         r.customerName,
@@ -623,6 +633,8 @@ app.put('/api/requests/:id', async (req, res) => {
         r.comments ? JSON.stringify(r.comments) : null,
         r.approvalHistory ? JSON.stringify(r.approvalHistory) : null,
         r.attachments ? JSON.stringify(r.attachments) : null,
+        r.shipmentStatus,
+        r.skuItems ? JSON.stringify(r.skuItems) : null,
         id
       ]
     );

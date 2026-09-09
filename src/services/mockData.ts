@@ -1202,6 +1202,8 @@ export const INITIAL_SETTINGS: SystemSettings = {
     { key: 'submitted', label: 'Submitted', badgeBg: 'bg-blue-50 dark:bg-blue-950/50', badgeText: 'text-blue-700 dark:text-blue-400', badgeBorder: 'border-blue-200 dark:border-blue-900', description: 'Submitted for verification' },
     { key: 'under_review', label: 'Under Review', badgeBg: 'bg-sky-50 dark:bg-sky-950/50', badgeText: 'text-sky-700 dark:text-sky-400', badgeBorder: 'border-sky-200 dark:border-sky-900', description: 'Under active compliance check' },
     { key: 'pending_executive', label: 'Pending Executive', badgeBg: 'bg-indigo-50 dark:bg-indigo-950/50', badgeText: 'text-indigo-700 dark:text-indigo-400', badgeBorder: 'border-indigo-200 dark:border-indigo-900', description: 'Awaiting Executive review' },
+    { key: 'pending_manager', label: 'Pending Manager', badgeBg: 'bg-cyan-50 dark:bg-cyan-950/50', badgeText: 'text-cyan-700 dark:text-cyan-400', badgeBorder: 'border-cyan-200 dark:border-cyan-900', description: 'Awaiting Manager review' },
+    { key: 'pending_hod', label: 'Pending HOD', badgeBg: 'bg-amber-50 dark:bg-amber-950/50', badgeText: 'text-amber-700 dark:text-amber-400', badgeBorder: 'border-amber-200 dark:border-amber-900', description: 'Awaiting Head of Department review' },
     { key: 'pending_assistant', label: 'Pending Assistant', badgeBg: 'bg-cyan-50 dark:bg-cyan-950/50', badgeText: 'text-cyan-700 dark:text-cyan-400', badgeBorder: 'border-cyan-200 dark:border-cyan-900', description: 'Awaiting Assistant verification' },
     { key: 'pending_president', label: 'Pending President', badgeBg: 'bg-purple-50 dark:bg-purple-950/50', badgeText: 'text-purple-700 dark:text-purple-400', badgeBorder: 'border-purple-200 dark:border-purple-900', description: 'Awaiting Presidential sign-off' },
     { key: 'approved', label: 'Approved', badgeBg: 'bg-emerald-50 dark:bg-emerald-950/50', badgeText: 'text-emerald-700 dark:text-emerald-400', badgeBorder: 'border-emerald-200 dark:border-emerald-900', description: 'Fully authorized, budget deducted' },
@@ -1212,14 +1214,14 @@ export const INITIAL_SETTINGS: SystemSettings = {
   approvalChains: [
     {
       id: 'chain-enterprise-default',
-      name: 'Default 4-Stage Executive Chain',
-      description: 'Standard multi-level sign-off: Executive -> Assistant -> President -> Admin sign-off',
+      name: 'Default 4-Stage Governance Chain',
+      description: 'Standard multi-level sign-off: Executive -> Manager -> HOD -> President',
       isDefault: true,
       steps: [
         { id: 's-1', order: 1, roleId: 'role-executive', roleName: 'Executive', label: 'Executive Review', isRequired: true },
-        { id: 's-2', order: 2, roleId: 'role-assistant', roleName: 'Assistant', label: 'Assistant Policy Check', isRequired: true },
-        { id: 's-3', order: 3, roleId: 'role-president', roleName: 'President', label: 'President Sign-Off', isRequired: true },
-        { id: 's-4', order: 4, roleId: 'role-admin', roleName: 'Admin', label: 'Admin Budget Execution', isRequired: true }
+        { id: 's-2', order: 2, roleId: 'role-manager', roleName: 'Manager', label: 'Manager Review', isRequired: true },
+        { id: 's-3', order: 3, roleId: 'role-hod', roleName: 'HOD', label: 'HOD Review', isRequired: true },
+        { id: 's-4', order: 4, roleId: 'role-president', roleName: 'President', label: 'President Sign-Off', isRequired: true }
       ]
     }
   ]
