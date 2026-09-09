@@ -178,7 +178,7 @@ export const NewRequestModal: React.FC<NewRequestModalProps> = ({ isOpen, onClos
         </div>
       }
       description="Submit a new sample/FOC request for multi-level authorization and budget tracking"
-      maxWidth="3xl"
+      maxWidth="2xl"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
