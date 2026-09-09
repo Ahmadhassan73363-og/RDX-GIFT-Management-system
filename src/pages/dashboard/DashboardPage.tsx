@@ -78,7 +78,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate, onOpen
               <span>Enterprise Budget Management Console</span>
             </div>
             <h1 className="text-xl sm:text-2xl font-bold tracking-tight">
-              Welcome back, {currentUser.name}
+              Welcome, {currentUser.name}
             </h1>
             <p className="text-xs sm:text-sm text-indigo-100 font-normal leading-relaxed">
               Monitoring <strong className="text-white">{teams.length} teams</strong> and <strong className="text-white">${totalAllocated.toLocaleString()}</strong> in allocated corporate allowances for fiscal year 2026.
@@ -157,9 +157,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate, onOpen
               </div>
               <div className="w-full bg-muted rounded-full h-1.5 mt-2.5 overflow-hidden">
                 <div
-                  className={`h-full rounded-full transition-all duration-500 ${
-                    overallBurnPct > 80 ? 'bg-rose-500' : 'bg-amber-500'
-                  }`}
+                  className={`h-full rounded-full transition-all duration-500 ${overallBurnPct > 80 ? 'bg-rose-500' : 'bg-amber-500'
+                    }`}
                   style={{ width: `${overallBurnPct}%` }}
                 />
               </div>
@@ -268,13 +267,12 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate, onOpen
                           ${(team.spentBudget || 0).toLocaleString()} / ${(team.allocatedBudget || 0).toLocaleString()}
                         </span>
                         <span
-                          className={`font-bold px-1.5 py-0.5 rounded text-[10px] ${
-                            isCritical
+                          className={`font-bold px-1.5 py-0.5 rounded text-[10px] ${isCritical
                               ? 'bg-rose-500/10 text-rose-500'
                               : isWarning
-                              ? 'bg-amber-500/10 text-amber-500'
-                              : 'bg-emerald-500/10 text-emerald-500'
-                          }`}
+                                ? 'bg-amber-500/10 text-amber-500'
+                                : 'bg-emerald-500/10 text-emerald-500'
+                            }`}
                         >
                           {burnPct}%
                         </span>
@@ -282,13 +280,12 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate, onOpen
                     </div>
                     <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
                       <div
-                        className={`h-full rounded-full transition-all duration-700 ${
-                          isCritical
+                        className={`h-full rounded-full transition-all duration-700 ${isCritical
                             ? 'bg-rose-500'
                             : isWarning
-                            ? 'bg-amber-500'
-                            : 'bg-primary'
-                        }`}
+                              ? 'bg-amber-500'
+                              : 'bg-primary'
+                          }`}
                         style={{ width: `${Math.min(100, burnPct)}%` }}
                       />
                     </div>
