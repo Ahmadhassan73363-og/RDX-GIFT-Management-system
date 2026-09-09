@@ -310,7 +310,7 @@ export const RequestDetailPage: React.FC<RequestDetailPageProps> = ({ requestId,
           {/* Multi-Level Approval Pipeline Visualizer */}
           <Card>
             <CardHeader>
-              <CardTitle>Multi-Level Approval Pipeline</CardTitle>
+              <CardTitle>Multi-Level Approval Process</CardTitle>
               <p className="text-xs text-muted-foreground">
                 Configured 4-stage executive governance chain
               </p>
@@ -328,15 +328,14 @@ export const RequestDetailPage: React.FC<RequestDetailPageProps> = ({ requestId,
                       {/* Circle indicator */}
                       <div className="relative flex flex-col items-center">
                         <div
-                          className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${
-                            isRejectedHere
+                          className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${isRejectedHere
                               ? 'bg-rose-500 text-white'
                               : isPassed
-                              ? 'bg-emerald-500 text-white'
-                              : isCurrent
-                              ? 'bg-primary text-white ring-4 ring-primary/20 animate-pulse'
-                              : 'bg-muted text-muted-foreground border border-border'
-                          }`}
+                                ? 'bg-emerald-500 text-white'
+                                : isCurrent
+                                  ? 'bg-primary text-white ring-4 ring-primary/20 animate-pulse'
+                                  : 'bg-muted text-muted-foreground border border-border'
+                            }`}
                         >
                           {isRejectedHere ? (
                             <XCircle className="w-4 h-4" />
@@ -348,9 +347,8 @@ export const RequestDetailPage: React.FC<RequestDetailPageProps> = ({ requestId,
                         </div>
                         {idx < stages.length - 1 && (
                           <div
-                            className={`w-0.5 h-12 my-1 ${
-                              isPassed ? 'bg-emerald-500' : 'bg-border'
-                            }`}
+                            className={`w-0.5 h-12 my-1 ${isPassed ? 'bg-emerald-500' : 'bg-border'
+                              }`}
                           />
                         )}
                       </div>
@@ -365,10 +363,10 @@ export const RequestDetailPage: React.FC<RequestDetailPageProps> = ({ requestId,
                             {isPassed
                               ? 'PASSED'
                               : isRejectedHere
-                              ? 'DECLINED'
-                              : isCurrent
-                              ? 'AWAITING SIGN-OFF'
-                              : 'UPCOMING'}
+                                ? 'DECLINED'
+                                : isCurrent
+                                  ? 'AWAITING SIGN-OFF'
+                                  : 'UPCOMING'}
                           </span>
                         </div>
 
@@ -470,9 +468,8 @@ export const RequestDetailPage: React.FC<RequestDetailPageProps> = ({ requestId,
                 </div>
                 <div className="flex items-center justify-between pt-1">
                   <span className="text-muted-foreground font-bold">Projected After Approval:</span>
-                  <span className={`font-bold text-sm ${
-                    hasSufficientBudget ? 'text-foreground' : 'text-rose-600 dark:text-rose-400'
-                  }`}>
+                  <span className={`font-bold text-sm ${hasSufficientBudget ? 'text-foreground' : 'text-rose-600 dark:text-rose-400'
+                    }`}>
                     ${((team.remainingBudget || 0) - (request.status === 'approved' ? 0 : (request.budgetAmount || 0))).toLocaleString()}
                   </span>
                 </div>
@@ -590,10 +587,10 @@ export const RequestDetailPage: React.FC<RequestDetailPageProps> = ({ requestId,
           actionType === 'approve'
             ? 'Sign & Authorize Request'
             : actionType === 'override_approve'
-            ? 'Executive Budget Override Authorization'
-            : actionType === 'reject'
-            ? 'Decline Request'
-            : 'Request Modifications'
+              ? 'Executive Budget Override Authorization'
+              : actionType === 'reject'
+                ? 'Decline Request'
+                : 'Request Modifications'
         }
         description={`Taking action as ${currentUser.name} (${currentUser.roleName})`}
         maxWidth="lg"
