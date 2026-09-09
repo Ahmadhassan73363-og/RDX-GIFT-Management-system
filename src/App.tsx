@@ -99,7 +99,7 @@ const AppContent: React.FC = () => {
         <SettingsPage />
       )}
 
-      {/* Global New Gift Request Modal */}
+      {/* Global New Request Modal */}
       <NewRequestModal
         isOpen={isGlobalNewRequestModalOpen}
         onClose={() => setIsGlobalNewRequestModalOpen(false)}

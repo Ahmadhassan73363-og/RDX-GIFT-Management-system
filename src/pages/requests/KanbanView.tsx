@@ -78,10 +78,10 @@ export const KanbanView: React.FC<KanbanViewProps> = ({ requests, onSelectReques
                       <div className="text-foreground font-medium truncate">{req.giftItem}</div>
                       <div className="flex items-center justify-between">
                         <span className="font-mono font-bold text-foreground">
-                          ${req.budgetAmount.toLocaleString()}
+                          ${(req.budgetAmount || 0).toLocaleString()}
                         </span>
                         <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">
-                          {req.discountPercentage}% Discount
+                          {req.discountPercentage || 0}% Discount
                         </span>
                       </div>
                     </div>

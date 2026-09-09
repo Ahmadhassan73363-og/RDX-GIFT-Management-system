@@ -22,9 +22,33 @@ import { AuditLog, AuditActionType } from '../types/audit';
 import { SystemSettings } from '../types/settings';
 import { ApprovalActionType, ApprovalHistoryEntry } from '../types/approval';
 
+import { api } from './apiService';
+
 class DataService {
   constructor() {
     this.initStorage();
+    this.syncFromDatabase();
+  }
+
+  public async syncFromDatabase() {
+    try {
+      const data = await api.getBootstrap();
+      if (!data) return;
+
+      if (Array.isArray(data.roles) && data.roles.length) storage.set('roles', data.roles);
+      if (Array.isArray(data.users) && data.users.length) storage.set('users', data.users);
+      if (Array.isArray(data.teams) && data.teams.length) storage.set('teams', data.teams);
+      if (Array.isArray(data.requests) && data.requests.length) storage.set('requests', data.requests);
+      if (Array.isArray(data.forms) && data.forms.length) storage.set('forms', data.forms);
+      if (Array.isArray(data.formAssignments) && data.formAssignments.length) storage.set('form_assignments', data.formAssignments);
+      if (Array.isArray(data.budgetTransactions) && data.budgetTransactions.length) storage.set('budget_transactions', data.budgetTransactions);
+      if (Array.isArray(data.notifications) && data.notifications.length) storage.set('notifications', data.notifications);
+      if (Array.isArray(data.auditLogs) && data.auditLogs.length) storage.set('audit_logs', data.auditLogs);
+      if (data.settings) storage.set('settings', data.settings);
+      console.log('✨ Synchronized state with local PostgreSQL database (rdx_gift_db)');
+    } catch (err) {
+      console.warn('Database sync skipped (offline or server starting)', err);
+    }
   }
 
   private initStorage() {
@@ -44,23 +68,47 @@ class DataService {
       storage.set('initialized', true);
     }
 
-    // Branding migration: force-patch stale OmniCorp name to RDX
+    // Schema v2 migration: if teams have old wrong field name (totalAllocatedBudget),
+    // reset them to fresh mock data so toLocaleString never crashes on undefined allocatedBudget
+    const storedTeams = storage.get<any[]>('teams', []);
+    if (storedTeams.length > 0 && storedTeams[0]?.totalAllocatedBudget !== undefined) {
+      console.log('🔄 Migrating stale team data (v1→v2 schema fix)...');
+      storage.set('teams', INITIAL_TEAMS);
+    }
+    // Also ensure any team missing allocatedBudget is patched with 0 (defensive)
+    const teams = storage.get<any[]>('teams', INITIAL_TEAMS);
+    const patched = teams.map(t => ({
+      ...t,
+      allocatedBudget: t.allocatedBudget ?? t.totalAllocatedBudget ?? 0,
+      spentBudget: t.spentBudget ?? 0,
+      remainingBudget: t.remainingBudget ?? Math.max(0, (t.allocatedBudget ?? t.totalAllocatedBudget ?? 0) - (t.spentBudget ?? 0)),
+      active: t.active ?? true,
+      memberCount: t.memberCount ?? 0,
+      currency: t.currency ?? '$',
+      code: t.code ?? 'TEAM',
+      leadName: t.leadName ?? '',
+    }));
+    storage.set('teams', patched);
+
+    // Branding migration: force-patch stale names to RDX Request & Budget Management System
     const currentSettings = storage.get<SystemSettings>('settings', INITIAL_SETTINGS);
     if (
       currentSettings?.branding?.companyName === 'OmniCorp Enterprise Systems' ||
       currentSettings?.branding?.companyName === 'OmniCorp' ||
-      currentSettings?.branding?.appTitle === 'Enterprise Gift & Budget Management'
+      currentSettings?.branding?.appTitle === 'Enterprise Gift & Budget Management' ||
+      currentSettings?.branding?.appTitle === 'Gift & Budget Management System'
     ) {
       storage.set('settings', {
         ...currentSettings,
         branding: {
           ...currentSettings.branding,
           companyName: 'RDX',
-          appTitle: 'Gift & Budget Management System',
+          appTitle: 'Request & Budget Management System',
         }
       });
     }
   }
+
 
 
   // --- Audit Logging ---
@@ -459,53 +507,93 @@ class DataService {
 
   public createRequest(
     payload: {
-      customerName: string;
-      customerCompany: string;
-      giftCategory: string;
-      giftItem: string;
-      discountPercentage: number;
-      giftValue: number;
-      teamId: string;
-      reason: string;
-      priority: RequestPriority;
+      date?: string;
+      department?: string;
+      agentOrTeamName?: string;
+      businessName?: string;
+      typeOfFoc?: string;
+      systemInvoiceNo?: string | number;
+      sampleSku?: string;
+      sampleSkuQty?: number;
+      sampleSkuCostPerUnit?: number;
+      sampleSkuTotal?: number;
+
+      customerName?: string;
+      customerCompany?: string;
+      giftCategory?: string;
+      giftItem?: string;
+      discountPercentage?: number;
+      giftValue?: number;
+      teamId?: string;
+      reason?: string;
+      priority?: RequestPriority;
       deliveryTargetDate?: string;
       attachments?: { name: string; size: number; type: string }[];
     },
     actor: User
   ): GiftRequest {
     const teams = this.getTeams();
-    const team = teams.find(t => t.id === payload.teamId);
-    if (!team) throw new Error('Team not found');
+    const team = teams.find(t => t.id === payload.teamId) || teams.find(t => t.id === actor.teamId) || teams[0];
+    if (!team) throw new Error('No team allocated');
 
-    const discountMultiplier = Math.max(0, 1 - (payload.discountPercentage / 100));
-    const budgetAmount = Math.round(payload.giftValue * discountMultiplier * 100) / 100;
+    // Calculate sample SKU cost or retail discount value
+    const numQty = Number(payload.sampleSkuQty) || 0;
+    const numCostPerUnit = Number(payload.sampleSkuCostPerUnit) || 0;
+    const calculatedSkuTotal = payload.sampleSkuTotal !== undefined
+      ? Number(payload.sampleSkuTotal)
+      : Math.round(numQty * numCostPerUnit * 100) / 100;
+
+    const discountMultiplier = Math.max(0, 1 - ((payload.discountPercentage || 0) / 100));
+    const discountBudgetAmount = Math.round((Number(payload.giftValue) || 0) * discountMultiplier * 100) / 100;
+
+    const budgetAmount = calculatedSkuTotal > 0 ? calculatedSkuTotal : (discountBudgetAmount > 0 ? discountBudgetAmount : (Number(payload.giftValue) || 0));
+    const giftValue = (Number(payload.giftValue) || 0) > 0 ? Number(payload.giftValue) : budgetAmount;
+
     const remainingBudget = team.remainingBudget;
     const budgetAfterApproval = remainingBudget - budgetAmount;
 
     const requests = this.getRequests();
     const count = requests.length + 1;
-    const trackingNumber = `GFT-2026-${String(count).padStart(4, '0')}`;
+    const trackingNumber = `REQ-2026-${String(count).padStart(4, '0')}`;
+
+    const effectiveDate = payload.date || payload.deliveryTargetDate || new Date().toISOString().split('T')[0];
+    const effectiveCompany = payload.businessName || payload.customerCompany || 'Enterprise Client';
+    const effectiveName = payload.agentOrTeamName || payload.customerName || actor.name;
+    const effectiveCategory = payload.typeOfFoc || payload.giftCategory || 'Standard FOC';
+    const effectiveItem = payload.sampleSku
+      ? (payload.sampleSku + (numQty > 0 ? ` (Qty: ${numQty})` : ''))
+      : (payload.giftItem || 'FOC Sample Item');
 
     const newRequest: GiftRequest = {
       id: 'req-' + Date.now(),
       trackingNumber,
-      customerName: payload.customerName,
-      customerCompany: payload.customerCompany,
-      giftCategory: payload.giftCategory,
-      giftItem: payload.giftItem,
-      discountPercentage: payload.discountPercentage,
-      giftValue: payload.giftValue,
+      customerName: effectiveName,
+      customerCompany: effectiveCompany,
+      giftCategory: effectiveCategory,
+      giftItem: effectiveItem,
+      discountPercentage: payload.discountPercentage || 0,
+      giftValue,
       budgetAmount,
       teamId: team.id,
-      teamName: team.name,
-      reason: payload.reason,
-      requestDate: new Date().toISOString().split('T')[0],
+      teamName: payload.agentOrTeamName || team.name,
+      reason: payload.reason || 'Standard operational request submission',
+      requestDate: effectiveDate,
       deliveryTargetDate: payload.deliveryTargetDate,
-      priority: payload.priority,
+      priority: payload.priority || 'normal',
       status: 'pending_executive',
       currentApprovalStepIndex: 1,
       totalApprovalSteps: 4,
       currentApproverRole: 'Executive',
+      date: effectiveDate,
+      department: payload.department || team.name,
+      agentOrTeamName: payload.agentOrTeamName || actor.name,
+      businessName: effectiveCompany,
+      typeOfFoc: effectiveCategory,
+      systemInvoiceNo: payload.systemInvoiceNo,
+      sampleSku: payload.sampleSku,
+      sampleSkuQty: numQty,
+      sampleSkuCostPerUnit: numCostPerUnit,
+      sampleSkuTotal: calculatedSkuTotal,
       teamRemainingBudgetAtRequest: remainingBudget,
       budgetAfterApproval,
       submittedByUserId: actor.id,
@@ -531,7 +619,7 @@ class DataService {
     // Notify approvers & team
     this.notify(
       'all_executives',
-      'New Gift Request Submitted',
+      'New Request Submitted',
       `Request ${newRequest.trackingNumber} for ${newRequest.customerCompany} ($${budgetAmount.toLocaleString()}) awaits Executive sign-off.`,
       'REQUEST_SUBMITTED',
       newRequest.id,
@@ -543,7 +631,7 @@ class DataService {
       'REQUEST_CREATE',
       'GiftRequest',
       newRequest.id,
-      `Submitted gift request ${newRequest.trackingNumber} for ${newRequest.customerName} (${newRequest.customerCompany}) - $${budgetAmount.toLocaleString()}`,
+      `Submitted request ${newRequest.trackingNumber} for ${newRequest.customerName} (${newRequest.customerCompany}) - $${budgetAmount.toLocaleString()}`,
       actor,
       undefined,
       JSON.stringify({ tracking: newRequest.trackingNumber, amount: budgetAmount, team: team.name })
@@ -733,14 +821,14 @@ class DataService {
     // Notify Submitter
     this.notify(
       req.submittedByUserId,
-      'Gift Request Fully Approved!',
+      'Request Fully Approved!',
       `Request ${req.trackingNumber} for ${req.customerCompany} has cleared all approval stages and budget $${req.budgetAmount.toLocaleString()} is allocated.`,
       'REQUEST_APPROVED',
       req.id,
       'request',
       `/requests`,
-      `[CONFIRMED] Gift Request ${req.trackingNumber} Approved`,
-      `<div style="font-family: sans-serif;"><h3 style="color: #10b981;">Gift Request Approved!</h3><p>Your request for <strong>${req.customerCompany}</strong> has received final sign-off. $${req.budgetAmount.toLocaleString()} has been charged to <strong>${team.name}</strong>.</p></div>`
+      `[CONFIRMED] Request ${req.trackingNumber} Approved`,
+      `<div style="font-family: sans-serif;"><h3 style="color: #10b981;">Request Approved!</h3><p>Your request for <strong>${req.customerCompany}</strong> has received final sign-off. $${req.budgetAmount.toLocaleString()} has been charged to <strong>${team.name}</strong>.</p></div>`
     );
 
     // Check Budget Thresholds (Warning at 80%, Exhausted at 100%)

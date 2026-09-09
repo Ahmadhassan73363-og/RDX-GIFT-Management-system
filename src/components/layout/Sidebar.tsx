@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   LayoutDashboard,
-  Gift,
+  FileText,
   CheckSquare,
   Users2,
   DollarSign,
@@ -36,9 +36,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentPath, onNavigate }) => 
   // Active team budget snippet
   const teams = dataService.getTeams();
   const userTeam = teams.find(t => t.id === currentUser.teamId) || teams[0];
-  const userTeamRemaining = userTeam ? userTeam.remainingBudget : 0;
-  const userTeamAllocated = userTeam ? userTeam.allocatedBudget : 1;
-  const userTeamPct = Math.round((userTeam.spentBudget / userTeamAllocated) * 100);
+  const userTeamRemaining = userTeam ? (userTeam.remainingBudget || 0) : 0;
+  const userTeamAllocated = userTeam ? (userTeam.allocatedBudget || 1) : 1;
+  const userTeamSpent = userTeam ? (userTeam.spentBudget || 0) : 0;
+  const userTeamPct = userTeamAllocated > 0 ? Math.round((userTeamSpent / userTeamAllocated) * 100) : 0;
 
   const navItems = [
     {
@@ -48,9 +49,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentPath, onNavigate }) => 
       permission: 'dashboard:view' as const,
     },
     {
-      label: 'Gift Requests',
+      label: 'Requests',
       path: '/requests',
-      icon: <Gift className="w-4 h-4" />,
+      icon: <FileText className="w-4 h-4" />,
       badge: 'Multi-View',
     },
     {

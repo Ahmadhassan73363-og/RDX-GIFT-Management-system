@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Gift, Users2, DollarSign, CheckSquare, ArrowRight, Shield } from 'lucide-react';
+import { Search, FileText, Users2, DollarSign, CheckSquare, ArrowRight, Shield } from 'lucide-react';
 import { dataService } from '../../services/dataService';
 import { useAuth } from '../../context/AuthContext';
 
@@ -93,8 +93,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
                 className="w-full flex items-center justify-between px-3 py-2 text-xs rounded-xl hover:bg-muted text-foreground transition-colors text-left"
               >
                 <span className="flex items-center gap-2">
-                  <Gift className="w-4 h-4 text-primary" />
-                  All Gift Requests & Kanban
+                  <FileText className="w-4 h-4 text-primary" />
+                  All Requests & Kanban
                 </span>
                 <ArrowRight className="w-3.5 h-3.5 text-muted-foreground" />
               </button>

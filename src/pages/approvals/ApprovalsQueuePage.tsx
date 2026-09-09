@@ -105,7 +105,7 @@ export const ApprovalsQueuePage: React.FC<ApprovalsQueuePageProps> = ({ onNaviga
             Multi-Stage Approvals Queue
           </h2>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Review and digitally authorize customer gift requests through executive stages
+            Review and digitally authorize customer requests through executive stages
           </p>
         </div>
 
@@ -154,7 +154,7 @@ export const ApprovalsQueuePage: React.FC<ApprovalsQueuePageProps> = ({ onNaviga
           </div>
           <h3 className="text-base font-bold text-foreground">All Clear! No Pending Approvals</h3>
           <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-            All submitted gift requests have been reviewed or are awaiting prior stage actions.
+            All submitted requests have been reviewed or are awaiting prior stage actions.
           </p>
         </Card>
       ) : (

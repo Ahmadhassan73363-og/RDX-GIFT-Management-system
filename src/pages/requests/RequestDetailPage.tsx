@@ -78,7 +78,7 @@ export const RequestDetailPage: React.FC<RequestDetailPageProps> = ({ requestId,
   const handleExecuteApproval = () => {
     setActionError('');
     if (actionType === 'reject' && !actionComments.trim()) {
-      setActionError('A rationale comment is mandatory when rejecting a gift request.');
+      setActionError('A rationale comment is mandatory when rejecting a request.');
       return;
     }
 
@@ -199,27 +199,67 @@ export const RequestDetailPage: React.FC<RequestDetailPageProps> = ({ requestId,
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column: Full Request Overview & Approval Workflow */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Main Gift Details Card */}
+          {/* Main Details Card */}
           <Card>
             <CardHeader>
-              <CardTitle>Gift Details & Commercial Value</CardTitle>
+              <CardTitle>Request & Sample Details</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
                 <div className="space-y-1">
-                  <span className="text-muted-foreground uppercase tracking-wider font-semibold text-[10px]">Client / Recipient</span>
-                  <p className="text-sm font-bold text-foreground">{request.customerName}</p>
-                  <p className="text-xs text-muted-foreground">{request.customerCompany}</p>
+                  <span className="text-muted-foreground uppercase tracking-wider font-semibold text-[10px]">Date</span>
+                  <p className="text-sm font-bold text-foreground">{request.date || request.requestDate}</p>
                 </div>
                 <div className="space-y-1">
-                  <span className="text-muted-foreground uppercase tracking-wider font-semibold text-[10px]">Category</span>
-                  <p className="text-sm font-bold text-foreground">{request.giftCategory}</p>
+                  <span className="text-muted-foreground uppercase tracking-wider font-semibold text-[10px]">Department</span>
+                  <p className="text-sm font-bold text-foreground">{request.department || team.name}</p>
+                </div>
+                <div className="space-y-1">
+                  <span className="text-muted-foreground uppercase tracking-wider font-semibold text-[10px]">Agent / Team Name</span>
+                  <p className="text-sm font-bold text-foreground">{request.agentOrTeamName || request.customerName}</p>
                 </div>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-muted/40 border border-border/80 space-y-1">
-                <span className="text-muted-foreground uppercase tracking-wider font-semibold text-[10px]">Gift Item Description</span>
-                <p className="text-sm font-semibold text-foreground">{request.giftItem}</p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs pt-1 border-t border-border/60">
+                <div className="space-y-1">
+                  <span className="text-muted-foreground uppercase tracking-wider font-semibold text-[10px]">Business Name</span>
+                  <p className="text-sm font-bold text-foreground">{request.businessName || request.customerCompany}</p>
+                </div>
+                <div className="space-y-1">
+                  <span className="text-muted-foreground uppercase tracking-wider font-semibold text-[10px]">Type of FOC</span>
+                  <p className="text-sm font-bold text-foreground">{request.typeOfFoc || request.giftCategory}</p>
+                </div>
+                <div className="space-y-1">
+                  <span className="text-muted-foreground uppercase tracking-wider font-semibold text-[10px]">System Invoice No.</span>
+                  <p className="text-sm font-mono font-bold text-foreground">{request.systemInvoiceNo || 'N/A'}</p>
+                </div>
+              </div>
+
+              {/* Sample SKU Details Box */}
+              <div className="p-3.5 rounded-xl bg-muted/40 border border-border/80 space-y-2">
+                <span className="text-muted-foreground uppercase tracking-wider font-semibold text-[10px]">Sample SKU Breakdown</span>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                  <div>
+                    <span className="text-[10px] text-muted-foreground">Sample SKU:</span>
+                    <p className="font-semibold text-foreground truncate">{request.sampleSku || request.giftItem}</p>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-muted-foreground">QTY:</span>
+                    <p className="font-semibold text-foreground font-mono">{request.sampleSkuQty ?? 1}</p>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-muted-foreground">Cost per Unit:</span>
+                    <p className="font-semibold text-foreground font-mono">
+                      ${((request.sampleSkuCostPerUnit !== undefined ? request.sampleSkuCostPerUnit : request.budgetAmount) || 0).toLocaleString()}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-muted-foreground">Sample SKU Total:</span>
+                    <p className="font-bold text-primary font-mono">
+                      ${((request.sampleSkuTotal !== undefined ? request.sampleSkuTotal : request.budgetAmount) || 0).toLocaleString()}
+                    </p>
+                  </div>
+                </div>
               </div>
 
               {/* Rationale */}
@@ -398,27 +438,27 @@ export const RequestDetailPage: React.FC<RequestDetailPageProps> = ({ requestId,
               {/* Financial Snapshot Numbers */}
               <div className="space-y-3 font-mono text-xs">
                 <div className="flex items-center justify-between pb-2 border-b border-border/80">
-                  <span className="text-muted-foreground">Retail Gift Value:</span>
-                  <span className="font-semibold text-foreground">${request.giftValue.toLocaleString()}</span>
+                  <span className="text-muted-foreground">Original / Retail Value:</span>
+                  <span className="font-semibold text-foreground">${(request.giftValue || 0).toLocaleString()}</span>
                 </div>
                 <div className="flex items-center justify-between pb-2 border-b border-border/80">
                   <span className="text-muted-foreground">Corporate Discount:</span>
-                  <span className="font-semibold text-emerald-600 dark:text-emerald-400">-{request.discountPercentage}%</span>
+                  <span className="font-semibold text-emerald-600 dark:text-emerald-400">-{request.discountPercentage || 0}%</span>
                 </div>
                 <div className="flex items-center justify-between pb-2 border-b border-border/80">
                   <span className="text-muted-foreground font-bold">Total Budget Charged:</span>
-                  <span className="font-bold text-sm text-primary">${request.budgetAmount.toLocaleString()}</span>
+                  <span className="font-bold text-sm text-primary">${(request.budgetAmount || 0).toLocaleString()}</span>
                 </div>
                 <div className="flex items-center justify-between pb-2 border-b border-border/80">
                   <span className="text-muted-foreground">Current Team Remaining:</span>
-                  <span className="font-semibold text-foreground">${team.remainingBudget.toLocaleString()}</span>
+                  <span className="font-semibold text-foreground">${(team.remainingBudget || 0).toLocaleString()}</span>
                 </div>
                 <div className="flex items-center justify-between pt-1">
                   <span className="text-muted-foreground font-bold">Projected After Approval:</span>
                   <span className={`font-bold text-sm ${
                     hasSufficientBudget ? 'text-foreground' : 'text-rose-600 dark:text-rose-400'
                   }`}>
-                    ${(team.remainingBudget - (request.status === 'approved' ? 0 : request.budgetAmount)).toLocaleString()}
+                    ${((team.remainingBudget || 0) - (request.status === 'approved' ? 0 : (request.budgetAmount || 0))).toLocaleString()}
                   </span>
                 </div>
               </div>
@@ -431,7 +471,7 @@ export const RequestDetailPage: React.FC<RequestDetailPageProps> = ({ requestId,
                     <span>Insufficient Budget Alert</span>
                   </div>
                   <p className="text-[11px] leading-relaxed">
-                    This team only has ${team.remainingBudget.toLocaleString()} left. Standard approval is blocked unless authorized by Super Admin or President override.
+                    This team only has ${(team.remainingBudget || 0).toLocaleString()} left. Standard approval is blocked unless authorized by Super Admin or President override.
                   </p>
                 </div>
               )}
@@ -443,7 +483,7 @@ export const RequestDetailPage: React.FC<RequestDetailPageProps> = ({ requestId,
                     <span>Budget Deducted Successfully</span>
                   </div>
                   <p className="text-[11px] leading-relaxed">
-                    ${request.budgetAmount.toLocaleString()} has been charged to {team.name}'s fiscal ledger.
+                    ${(request.budgetAmount || 0).toLocaleString()} has been charged to {team.name}'s fiscal ledger.
                   </p>
                 </div>
               )}
@@ -489,7 +529,7 @@ export const RequestDetailPage: React.FC<RequestDetailPageProps> = ({ requestId,
             : actionType === 'override_approve'
             ? 'Executive Budget Override Authorization'
             : actionType === 'reject'
-            ? 'Decline Gift Request'
+            ? 'Decline Request'
             : 'Request Modifications'
         }
         description={`Taking action as ${currentUser.name} (${currentUser.roleName})`}

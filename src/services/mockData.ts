@@ -63,7 +63,7 @@ export const PERMISSION_CATEGORIES: PermissionCategory[] = [
     permissions: [
       { key: 'settings:roles', label: 'Manage Roles & RBAC', description: 'Configure dynamic roles and permission matrices' },
       { key: 'settings:teams', label: 'Manage Teams', description: 'Create and organize teams and leads' },
-      { key: 'settings:categories', label: 'Manage Categories', description: 'Configure gift categories and department lists' },
+      { key: 'settings:categories', label: 'Manage Categories', description: 'Configure categories and department lists' },
       { key: 'settings:system', label: 'System Configuration', description: 'Branding, workflow chains, and safety thresholds' }
     ]
   }
@@ -309,7 +309,7 @@ export const INITIAL_TEAMS: Team[] = [
     id: 'team-sales',
     name: 'Sales Team',
     code: 'SALES',
-    description: 'Direct enterprise sales force delivering customized gifts to high-value prospects and clients.',
+    description: 'Direct enterprise sales force delivering customized solutions to high-value prospects and clients.',
     leadId: 'usr-6',
     leadName: 'David Miller',
     leadEmail: 'david.miller@enterprise.com',
@@ -326,7 +326,7 @@ export const INITIAL_TEAMS: Team[] = [
     id: 'team-marketing',
     name: 'Marketing Team',
     code: 'MKTG',
-    description: 'Field marketing and partner relationship gifts, event swag packages, and campaign incentives.',
+    description: 'Field marketing and partner relationships, event swag packages, and campaign incentives.',
     leadId: 'usr-7',
     leadName: 'Sarah Jenkins',
     leadEmail: 'sarah.jenkins@enterprise.com',
@@ -343,7 +343,7 @@ export const INITIAL_TEAMS: Team[] = [
     id: 'team-corporate',
     name: 'Corporate Team',
     code: 'CORP',
-    description: 'Tier-1 strategic VIP clients, board hospitality, and high-level corporate gifts.',
+    description: 'Tier-1 strategic VIP clients, board hospitality, and high-level corporate packages.',
     leadId: 'usr-3',
     leadName: 'Marcus Brody',
     leadEmail: 'marcus.brody@enterprise.com',
@@ -360,7 +360,7 @@ export const INITIAL_TEAMS: Team[] = [
     id: 'team-events',
     name: 'Events Team',
     code: 'EVNT',
-    description: 'Onsite summit giveaways, conference speaker appreciation gifts, and tournament packages.',
+    description: 'Onsite summit giveaways, conference speaker appreciation packages, and tournament packages.',
     leadId: 'usr-5',
     leadName: 'Lucas Hayes',
     leadEmail: 'lucas.hayes@enterprise.com',
@@ -822,8 +822,8 @@ export const INITIAL_REQUESTS: GiftRequest[] = [
 export const INITIAL_FORMS: FormSchema[] = [
   {
     id: 'form-std-gift',
-    title: 'Standard Discounted Customer Gift Request',
-    description: 'Universal workflow form for submitting corporate gifts, customer loyalty perks, and partner discounts.',
+    title: 'Standard Discounted Customer Request',
+    description: 'Universal workflow form for submitting corporate packages, customer loyalty perks, and partner discounts.',
     category: 'Sales & Customer Relations',
     version: 1,
     isActive: true,
@@ -851,7 +851,7 @@ export const INITIAL_FORMS: FormSchema[] = [
         id: 'f-3',
         type: 'dropdown',
         name: 'giftCategory',
-        label: 'Gift Category',
+        label: 'Category',
         required: true,
         options: [
           { label: 'Premium Electronics', value: 'Premium Electronics' },
@@ -866,7 +866,7 @@ export const INITIAL_FORMS: FormSchema[] = [
         id: 'f-4',
         type: 'text',
         name: 'giftItem',
-        label: 'Specific Gift Item Description',
+        label: 'Specific Item Description',
         placeholder: 'e.g. Apple iPad Pro with Corporate Monogram',
         required: true
       },
@@ -874,7 +874,7 @@ export const INITIAL_FORMS: FormSchema[] = [
         id: 'f-5',
         type: 'currency',
         name: 'giftValue',
-        label: 'Original Retail Gift Value ($)',
+        label: 'Original Retail Value ($)',
         placeholder: '1000',
         required: true
       },
@@ -924,7 +924,7 @@ export const INITIAL_FORMS: FormSchema[] = [
         name: 'submitterSignature',
         label: 'Submitter Digital Sign-Off',
         required: true,
-        helpText: 'Sign with cursor or touch to certify that this gift complies with anti-bribery and corporate compliance policies.'
+        helpText: 'Sign with cursor or touch to certify that this request complies with corporate compliance policies.'
       }
     ],
     createdAt: '2026-01-15T00:00:00Z',
@@ -932,7 +932,7 @@ export const INITIAL_FORMS: FormSchema[] = [
   },
   {
     id: 'form-vip-event',
-    title: 'Executive VIP Hospitality & Summit Gift Package',
+    title: 'Executive VIP Hospitality & Summit Package',
     description: 'For keynote speakers, advisory board members, and high-tier delegates.',
     category: 'Events & Hospitality',
     version: 1,
@@ -1044,7 +1044,7 @@ export const INITIAL_NOTIFICATIONS: Notification[] = [
     createdAt: '2026-03-03T11:46:00Z',
     emailPreview: {
       to: 'eleanor.sterling@enterprise.com',
-      subject: '[ACTION REQUIRED] President Sign-off: Gift Request GFT-2026-0002',
+      subject: '[ACTION REQUIRED] President Sign-off: Request GFT-2026-0002',
       htmlBody: `
         <div style="font-family: sans-serif; padding: 20px; color: #1e293b;">
           <h2 style="color: #4f46e5;">Presidential Approval Requested</h2>
@@ -1087,7 +1087,7 @@ export const INITIAL_NOTIFICATIONS: Notification[] = [
     id: 'notif-3',
     userId: 'usr-6',
     title: 'Request Approved & Budget Deducted',
-    message: 'Your gift request GFT-2026-0001 for Acme Corporation ($1,120) has completed all 4 approval stages.',
+    message: 'Your request GFT-2026-0001 for Acme Corporation ($1,120) has completed all 4 approval stages.',
     type: 'REQUEST_APPROVED',
     entityId: 'req-1',
     entityType: 'request',
@@ -1121,7 +1121,7 @@ export const INITIAL_AUDIT_LOGS: AuditLog[] = [
     action: 'REQUEST_CREATE',
     entityType: 'GiftRequest',
     entityId: 'req-4',
-    description: 'Submitted new Gift Request GFT-2026-0004 for Apex Fintech Solutions ($1,620)',
+    description: 'Submitted new Request GFT-2026-0004 for Apex Fintech Solutions ($1,620)',
     oldValue: 'null',
     newValue: JSON.stringify({ trackingNumber: 'GFT-2026-0004', budgetAmount: 1620, team: 'Sales Team' }),
     ipAddress: '192.168.1.112',
@@ -1165,11 +1165,11 @@ export const INITIAL_AUDIT_LOGS: AuditLog[] = [
 export const INITIAL_SETTINGS: SystemSettings = {
   branding: {
     companyName: 'RDX',
-    appTitle: 'Gift & Budget Management System',
+    appTitle: 'Request & Budget Management System',
     currencySymbol: '$',
     currencyCode: 'USD',
     primaryColorHex: '#4f46e5',
-    supportEmail: 'support-gifts@enterprise.com'
+    supportEmail: 'support@enterprise.com'
   },
   budgetRules: {
     warningThresholdPercent: 80,
@@ -1206,7 +1206,7 @@ export const INITIAL_SETTINGS: SystemSettings = {
     { key: 'pending_president', label: 'Pending President', badgeBg: 'bg-purple-50 dark:bg-purple-950/50', badgeText: 'text-purple-700 dark:text-purple-400', badgeBorder: 'border-purple-200 dark:border-purple-900', description: 'Awaiting Presidential sign-off' },
     { key: 'approved', label: 'Approved', badgeBg: 'bg-emerald-50 dark:bg-emerald-950/50', badgeText: 'text-emerald-700 dark:text-emerald-400', badgeBorder: 'border-emerald-200 dark:border-emerald-900', description: 'Fully authorized, budget deducted' },
     { key: 'rejected', label: 'Rejected', badgeBg: 'bg-rose-50 dark:bg-rose-950/50', badgeText: 'text-rose-700 dark:text-rose-400', badgeBorder: 'border-rose-200 dark:border-rose-900', description: 'Decline recorded with reason' },
-    { key: 'completed', label: 'Completed', badgeBg: 'bg-teal-50 dark:bg-teal-950/50', badgeText: 'text-teal-700 dark:text-teal-400', badgeBorder: 'border-teal-200 dark:border-teal-900', description: 'Gift procured and dispatched' },
+    { key: 'completed', label: 'Completed', badgeBg: 'bg-teal-50 dark:bg-teal-950/50', badgeText: 'text-teal-700 dark:text-teal-400', badgeBorder: 'border-teal-200 dark:border-teal-900', description: 'Procured and dispatched' },
     { key: 'cancelled', label: 'Cancelled', badgeBg: 'bg-zinc-100 dark:bg-zinc-800', badgeText: 'text-zinc-600 dark:text-zinc-400', badgeBorder: 'border-zinc-300 dark:border-zinc-700', description: 'Cancelled by submitter' }
   ],
   approvalChains: [

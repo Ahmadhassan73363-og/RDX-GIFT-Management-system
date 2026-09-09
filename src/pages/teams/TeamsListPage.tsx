@@ -175,8 +175,8 @@ export const TeamsListPage: React.FC<TeamsListPageProps> = ({ onNavigateToBudget
                 {/* Budget Progress Meter */}
                 <div className="space-y-1.5 pt-1">
                   <div className="flex items-center justify-between text-xs font-mono">
-                    <span className="text-muted-foreground">Spent: ${team.spentBudget.toLocaleString()}</span>
-                    <span className="font-bold text-primary">${team.remainingBudget.toLocaleString()} Remaining</span>
+                    <span className="text-muted-foreground">Spent: ${(team.spentBudget || 0).toLocaleString()}</span>
+                    <span className="font-bold text-primary">${(team.remainingBudget || 0).toLocaleString()} Remaining</span>
                   </div>
                   <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
                     <div
@@ -187,7 +187,7 @@ export const TeamsListPage: React.FC<TeamsListPageProps> = ({ onNavigateToBudget
                     />
                   </div>
                   <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-                    <span>Pool: ${team.allocatedBudget.toLocaleString()}</span>
+                    <span>Pool: ${(team.allocatedBudget || 0).toLocaleString()}</span>
                     <span>{burnPct}% Utilized</span>
                   </div>
                 </div>
@@ -214,7 +214,7 @@ export const TeamsListPage: React.FC<TeamsListPageProps> = ({ onNavigateToBudget
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title={editingTeam ? 'Edit Team Details' : 'Create Functional Enterprise Team'}
-        description="Teams distribute discounted gifts within their dedicated corporate budget envelopes"
+        description="Teams manage operational distributions within their dedicated corporate budget envelopes"
         maxWidth="md"
       >
         <form onSubmit={handleSaveTeam} className="space-y-4">
@@ -280,7 +280,7 @@ export const TeamsListPage: React.FC<TeamsListPageProps> = ({ onNavigateToBudget
               rows={2}
               value={teamDescription}
               onChange={(e) => setTeamDescription(e.target.value)}
-              placeholder="Describe the functional mission and gift usage for this team..."
+              placeholder="Describe the functional mission and budget usage for this team..."
               className="w-full bg-background border border-input rounded-lg px-3.5 py-2 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
             />
           </div>

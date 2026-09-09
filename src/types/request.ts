@@ -35,7 +35,7 @@ export interface RequestComment {
 
 export interface GiftRequest {
   id: string;
-  trackingNumber: string; // e.g. GFT-2026-0042
+  trackingNumber: string; // e.g. REQ-2026-0042
   customerName: string;
   customerCompany: string;
   giftCategory: string;
@@ -53,6 +53,18 @@ export interface GiftRequest {
   currentApprovalStepIndex: number;
   totalApprovalSteps: number;
   currentApproverRole: string;
+
+  // Specific FOC Sample Tracking Fields
+  date?: string;
+  department?: string;
+  agentOrTeamName?: string;
+  businessName?: string;
+  typeOfFoc?: string;
+  systemInvoiceNo?: string | number;
+  sampleSku?: string;
+  sampleSkuQty?: number;
+  sampleSkuCostPerUnit?: number;
+  sampleSkuTotal?: number;
   
   // Budget snapshot at submission / evaluation
   teamRemainingBudgetAtRequest: number;
@@ -70,3 +82,5 @@ export interface GiftRequest {
   createdAt: string;
   updatedAt: string;
 }
+
+export type AppRequest = GiftRequest;

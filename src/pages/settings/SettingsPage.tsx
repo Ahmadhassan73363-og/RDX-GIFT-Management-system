@@ -232,7 +232,7 @@ export const SettingsPage: React.FC = () => {
               max="100"
               value={maxDiscount}
               onChange={(e) => setMaxDiscount(Number(e.target.value))}
-              helperText="Compliance cap for discounted gifts without special board dispensation"
+              helperText="Compliance cap for discounted requests without special board dispensation"
             />
 
             <div className="p-4 rounded-xl bg-muted/40 border border-border flex items-center justify-between">
@@ -311,7 +311,7 @@ export const SettingsPage: React.FC = () => {
           <CardHeader className="p-0 pb-3">
             <CardTitle>Configurable Approval Chains</CardTitle>
             <p className="text-xs text-muted-foreground">
-              Define the sequential role progression for corporate gift authorizations
+              Define the sequential role progression for corporate authorizations
             </p>
           </CardHeader>
           <CardContent className="p-0 space-y-4 text-xs">
@@ -319,7 +319,7 @@ export const SettingsPage: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="font-bold text-foreground text-sm">Default 4-Stage Executive Chain</h4>
-                  <p className="text-muted-foreground text-xs">Applied to all customer gift submissions</p>
+                  <p className="text-muted-foreground text-xs">Applied to all customer submissions</p>
                 </div>
                 <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-primary/10 text-primary font-bold">
                   ACTIVE DEFAULT
@@ -361,9 +361,9 @@ export const SettingsPage: React.FC = () => {
           <CardContent className="p-0 space-y-3 text-xs">
             <div className="space-y-2">
               {[
-                { trigger: 'Request Submitted', target: 'Executive Committee', subject: '[ACTION REQUIRED] New Gift Request Submitted' },
-                { trigger: 'Request Approved', target: 'Submitter & Team Lead', subject: '[CONFIRMED] Gift Request Authorized & Budget Allocated' },
-                { trigger: 'Request Rejected', target: 'Submitter', subject: '[DECISION] Gift Request Declined' },
+                { trigger: 'Request Submitted', target: 'Executive Committee', subject: '[ACTION REQUIRED] New Request Submitted' },
+                { trigger: 'Request Approved', target: 'Submitter & Team Lead', subject: '[CONFIRMED] Request Authorized & Budget Allocated' },
+                { trigger: 'Request Rejected', target: 'Submitter', subject: '[DECISION] Request Declined' },
                 { trigger: 'Budget Low (<20%)', target: 'Admins & Team Lead', subject: '[BUDGET WARNING] Team balance approaching threshold' },
                 { trigger: 'Budget Exhausted (100%)', target: 'Super Admins', subject: '[CRITICAL ALERT] Team budget fully consumed' },
               ].map((tmpl, i) => (

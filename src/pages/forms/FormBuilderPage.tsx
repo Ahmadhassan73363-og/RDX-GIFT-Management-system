@@ -47,7 +47,7 @@ const FIELD_PALETTE: { type: FieldType; label: string; icon: React.ReactNode; de
   { type: 'phone', label: 'Phone', icon: <Phone className="w-3.5 h-3.5" />, defaultLabel: 'Contact Phone' },
   { type: 'date', label: 'Date', icon: <Calendar className="w-3.5 h-3.5" />, defaultLabel: 'Event Date' },
   { type: 'time', label: 'Time', icon: <Clock className="w-3.5 h-3.5" />, defaultLabel: 'Scheduled Time' },
-  { type: 'dropdown', label: 'Dropdown Select', icon: <Layers className="w-3.5 h-3.5" />, defaultLabel: 'Gift Tier' },
+  { type: 'dropdown', label: 'Dropdown Select', icon: <Layers className="w-3.5 h-3.5" />, defaultLabel: 'Priority Tier' },
   { type: 'radio', label: 'Radio Choice', icon: <CheckSquare className="w-3.5 h-3.5" />, defaultLabel: 'Urgency Level' },
   { type: 'checkbox', label: 'Checkbox', icon: <CheckSquare className="w-3.5 h-3.5" />, defaultLabel: 'Requires Executive Stamp' },
   { type: 'multi_select', label: 'Multi-Select', icon: <Layers className="w-3.5 h-3.5" />, defaultLabel: 'Applicable Categories' },
@@ -61,7 +61,7 @@ export const FormBuilderPage: React.FC<FormBuilderPageProps> = ({ formId, onBack
   const { currentUser } = useAuth();
   const existingForm = formId ? dataService.getFormById(formId) : null;
 
-  const [formTitle, setFormTitle] = useState(existingForm?.title || 'New Dynamic Gift Request Form');
+  const [formTitle, setFormTitle] = useState(existingForm?.title || 'New Dynamic Request Form');
   const [formDescription, setFormDescription] = useState(existingForm?.description || 'Custom workflow schema');
   const [category, setCategory] = useState(existingForm?.category || 'Corporate');
   const [fields, setFields] = useState<FormField[]>(existingForm?.fields || [
@@ -186,7 +186,7 @@ export const FormBuilderPage: React.FC<FormBuilderPageProps> = ({ formId, onBack
               Dynamic No-Code Form Generator
             </h2>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Build and customize gift request forms with live conditional rules and validation
+              Build and customize request forms with live conditional rules and validation
             </p>
           </div>
         </div>

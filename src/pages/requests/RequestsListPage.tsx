@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import {
-  Gift,
+  FileText,
   Table as TableIcon,
   Kanban,
   Calendar as CalendarIcon,
@@ -91,7 +91,7 @@ export const RequestsListPage: React.FC<RequestsListPageProps> = ({
   }, [allRequests, searchQuery, teamFilter, statusFilter, priorityFilter, sortField, sortOrder, refreshKey]);
 
   const handleExportCSV = () => {
-    const headers = ['Tracking #', 'Client Name', 'Company', 'Team', 'Gift Item', 'Gift Value', 'Discount %', 'Budget Amount', 'Status', 'Priority', 'Date'];
+    const headers = ['Tracking #', 'Client Name', 'Company', 'Team', 'Item / Sample', 'Value', 'Discount %', 'Budget Amount', 'Status', 'Priority', 'Date'];
     const rows = filteredRequests.map(r => [
       r.trackingNumber,
       `"${r.customerName}"`,
@@ -109,7 +109,7 @@ export const RequestsListPage: React.FC<RequestsListPageProps> = ({
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `gift_requests_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `requests_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -137,11 +137,11 @@ export const RequestsListPage: React.FC<RequestsListPageProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            <Gift className="w-5 h-5 text-primary" />
-            Gift Requests Hub
+            <FileText className="w-5 h-5 text-primary" />
+            Requests Hub
           </h2>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Manage discounted gift submissions, multi-level approvals, and budget deduct allocations
+            Manage submissions, multi-level authorizations, and budget deduct allocations
           </p>
         </div>
 
@@ -320,7 +320,7 @@ export const RequestsListPage: React.FC<RequestsListPageProps> = ({
                 <tr className="border-b border-border text-[11px] font-semibold text-muted-foreground uppercase tracking-wider bg-muted/20">
                   <th className="p-3.5 pl-4">Tracking #</th>
                   <th className="p-3.5">Customer / Company</th>
-                  <th className="p-3.5">Gift Item & Category</th>
+                  <th className="p-3.5">Item / Sample & Category</th>
                   <th className="p-3.5">Team</th>
                   <th className="p-3.5">Retail / Discount</th>
                   <th className="p-3.5">Budget Charge</th>
@@ -333,7 +333,7 @@ export const RequestsListPage: React.FC<RequestsListPageProps> = ({
                 {filteredRequests.length === 0 ? (
                   <tr>
                     <td colSpan={9} className="p-8 text-center text-muted-foreground">
-                      No gift requests found matching your filter criteria.
+                      No requests found matching your filter criteria.
                     </td>
                   </tr>
                 ) : (
@@ -354,21 +354,21 @@ export const RequestsListPage: React.FC<RequestsListPageProps> = ({
                       </td>
                       <td className="p-3.5">
                         <div className="text-foreground font-medium truncate max-w-[200px]">
-                          {req.giftItem}
+                          {req.sampleSku ? `${req.sampleSku}${req.sampleSkuQty ? ` (Qty: ${req.sampleSkuQty})` : ''}` : req.giftItem}
                         </div>
-                        <div className="text-[10px] text-muted-foreground">{req.giftCategory}</div>
+                        <div className="text-[10px] text-muted-foreground">{req.typeOfFoc || req.giftCategory}</div>
                       </td>
                       <td className="p-3.5 text-muted-foreground font-medium">
                         {req.teamName}
                       </td>
                       <td className="p-3.5 font-mono">
-                        <div className="text-foreground">${req.giftValue.toLocaleString()}</div>
+                        <div className="text-foreground">${(req.giftValue || 0).toLocaleString()}</div>
                         <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">
-                          -{req.discountPercentage}% off
+                          -{req.discountPercentage || 0}% off
                         </div>
                       </td>
                       <td className="p-3.5 font-mono font-bold text-sm text-foreground">
-                        ${req.budgetAmount.toLocaleString()}
+                        ${(req.budgetAmount || 0).toLocaleString()}
                       </td>
                       <td className="p-3.5">
                         <StatusBadge status={req.status} size="sm" />

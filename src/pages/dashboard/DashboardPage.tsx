@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   Users2,
-  Gift,
+  FileText,
   CheckCircle2,
   XCircle,
   Clock,
@@ -37,8 +37,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate, onOpen
   const auditLogs = dataService.getAuditLogs().slice(0, 6);
 
   // Financial calculations
-  const totalAllocated = teams.reduce((acc, t) => acc + t.allocatedBudget, 0);
-  const totalSpent = teams.reduce((acc, t) => acc + t.spentBudget, 0);
+  const totalAllocated = teams.reduce((acc, t) => acc + (t.allocatedBudget || 0), 0);
+  const totalSpent = teams.reduce((acc, t) => acc + (t.spentBudget || 0), 0);
   const totalRemaining = totalAllocated - totalSpent;
   const overallBurnPct = totalAllocated > 0 ? Math.round((totalSpent / totalAllocated) * 100) : 0;
 
@@ -59,7 +59,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate, onOpen
   // Category spending breakdown
   const categoryMap: Record<string, number> = {};
   requests.forEach(r => {
-    categoryMap[r.giftCategory] = (categoryMap[r.giftCategory] || 0) + r.budgetAmount;
+    categoryMap[r.giftCategory] = (categoryMap[r.giftCategory] || 0) + (r.budgetAmount || 0);
   });
   const categoryStats = Object.entries(categoryMap).map(([category, amount]) => ({
     category,
@@ -81,7 +81,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate, onOpen
               Welcome back, {currentUser.name}
             </h1>
             <p className="text-xs sm:text-sm text-indigo-100 font-normal leading-relaxed">
-              Monitoring <strong className="text-white">{teams.length} teams</strong> and <strong className="text-white">${totalAllocated.toLocaleString()}</strong> in allocated corporate gift allowances for fiscal year 2026.
+              Monitoring <strong className="text-white">{teams.length} teams</strong> and <strong className="text-white">${totalAllocated.toLocaleString()}</strong> in allocated corporate allowances for fiscal year 2026.
             </p>
           </div>
 
@@ -93,7 +93,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate, onOpen
               leftIcon={<Plus className="w-4 h-4 text-primary" />}
               className="bg-white text-slate-900 hover:bg-white/90 font-semibold"
             >
-              New Gift Request
+              New Request
             </Button>
             {hasPermission('approvals:approve') && (
               <Button
@@ -176,10 +176,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate, onOpen
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Gift Requests
+                Requests
               </span>
               <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-500">
-                <Gift className="w-4 h-4" />
+                <FileText className="w-4 h-4" />
               </div>
             </div>
             <div className="mt-3">
@@ -248,7 +248,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate, onOpen
           <CardContent>
             <div className="space-y-4 pt-2">
               {topTeams.map((team) => {
-                const burnPct = Math.round((team.spentBudget / team.allocatedBudget) * 100);
+                const burnPct = Math.round(((team.spentBudget || 0) / (team.allocatedBudget || 1)) * 100);
                 const isWarning = burnPct >= settings.budgetRules.warningThresholdPercent;
                 const isCritical = burnPct >= settings.budgetRules.criticalThresholdPercent;
 
@@ -265,7 +265,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate, onOpen
                       </div>
                       <div className="flex items-center gap-3 font-mono text-[11px]">
                         <span className="text-muted-foreground">
-                          ${team.spentBudget.toLocaleString()} / ${team.allocatedBudget.toLocaleString()}
+                          ${(team.spentBudget || 0).toLocaleString()} / ${(team.allocatedBudget || 0).toLocaleString()}
                         </span>
                         <span
                           className={`font-bold px-1.5 py-0.5 rounded text-[10px] ${
@@ -299,12 +299,12 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate, onOpen
           </CardContent>
         </Card>
 
-        {/* Spending by Gift Category Breakdown */}
+        {/* Spending by Category Breakdown */}
         <Card>
           <CardHeader>
             <CardTitle>Spending by Category</CardTitle>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Distribution of approved gift expenditures
+              Distribution of approved request expenditures
             </p>
           </CardHeader>
           <CardContent>
@@ -313,11 +313,11 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate, onOpen
                 <div key={item.category} className="p-3 rounded-xl bg-muted/30 border border-border/60 flex items-center justify-between">
                   <div className="space-y-0.5 min-w-0 pr-2">
                     <p className="text-xs font-semibold text-foreground truncate">{item.category}</p>
-                    <p className="text-[10px] text-muted-foreground">{item.pct}% of total gift spend</p>
+                    <p className="text-[10px] text-muted-foreground">{item.pct}% of total spend</p>
                   </div>
                   <div className="text-right shrink-0">
                     <span className="font-mono text-xs font-bold text-foreground">
-                      ${item.amount.toLocaleString()}
+                      ${(item.amount || 0).toLocaleString()}
                     </span>
                   </div>
                 </div>
@@ -329,12 +329,12 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate, onOpen
 
       {/* Second Row: Recent Requests Table & Live Audit Feed */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Recent Gift Requests */}
+        {/* Recent Requests */}
         <Card className="lg:col-span-2">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>Recent Gift Requests</CardTitle>
+                <CardTitle>Recent Requests</CardTitle>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   Latest submissions moving through the multi-stage approval pipeline
                 </p>
@@ -378,8 +378,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate, onOpen
                       </td>
                       <td className="py-3 text-muted-foreground">{req.teamName}</td>
                       <td className="py-3 font-mono">
-                        <div className="font-semibold text-foreground">${req.budgetAmount.toLocaleString()}</div>
-                        <div className="text-[10px] text-muted-foreground line-through">${req.giftValue.toLocaleString()}</div>
+                        <div className="font-semibold text-foreground">${(req.budgetAmount || 0).toLocaleString()}</div>
+                        <div className="text-[10px] text-muted-foreground line-through">${(req.giftValue || 0).toLocaleString()}</div>
                       </td>
                       <td className="py-3">
                         <StatusBadge status={req.status} size="sm" />

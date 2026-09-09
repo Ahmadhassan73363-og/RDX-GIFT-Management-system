@@ -60,7 +60,7 @@ export const FormsListPage: React.FC<FormsListPageProps> = ({ onNavigateToAssign
             Dynamic Form Generator & Schemas
           </h2>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Configure custom gift request and corporate approval forms with no-code field generation
+            Configure custom request and corporate approval forms with no-code field generation
           </p>
         </div>
 

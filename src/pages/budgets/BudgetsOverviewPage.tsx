@@ -41,8 +41,8 @@ export const BudgetsOverviewPage: React.FC = () => {
   const canEditBudget = hasPermission('budgets:edit') || hasPermission('budgets:increase');
 
   // Overall calculations
-  const totalAllocated = teams.reduce((sum, t) => sum + t.allocatedBudget, 0);
-  const totalSpent = teams.reduce((sum, t) => sum + t.spentBudget, 0);
+  const totalAllocated = teams.reduce((sum, t) => sum + (t.allocatedBudget || 0), 0);
+  const totalSpent = teams.reduce((sum, t) => sum + (t.spentBudget || 0), 0);
   const totalRemaining = totalAllocated - totalSpent;
   const overallBurnPct = totalAllocated > 0 ? Math.round((totalSpent / totalAllocated) * 100) : 0;
 
@@ -144,7 +144,7 @@ export const BudgetsOverviewPage: React.FC = () => {
           <div className="text-2xl font-bold font-mono text-primary mt-2">
             ${totalRemaining.toLocaleString()}
           </div>
-          <p className="text-[11px] text-muted-foreground mt-1">{100 - overallBurnPct}% remaining for upcoming gifts</p>
+          <p className="text-[11px] text-muted-foreground mt-1">{100 - overallBurnPct}% remaining for upcoming requests</p>
         </Card>
 
         <Card className="p-5">
@@ -163,13 +163,13 @@ export const BudgetsOverviewPage: React.FC = () => {
         <CardHeader>
           <CardTitle>Functional Team Allocations & Health</CardTitle>
           <p className="text-xs text-muted-foreground">
-            Every approved gift request automatically deducts from the team balance
+            Every approved request automatically deducts from the team balance
           </p>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-1">
             {teams.map((t) => {
-              const burnPct = Math.round((t.spentBudget / t.allocatedBudget) * 100);
+              const burnPct = Math.round(((t.spentBudget || 0) / (t.allocatedBudget || 1)) * 100);
               const isWarning = burnPct >= settings.budgetRules.warningThresholdPercent;
               const isCritical = burnPct >= 100;
 
@@ -196,15 +196,15 @@ export const BudgetsOverviewPage: React.FC = () => {
                   <div className="space-y-1.5 font-mono text-xs">
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">Allocated:</span>
-                      <span className="text-foreground">${t.allocatedBudget.toLocaleString()}</span>
+                      <span className="text-foreground">${(t.allocatedBudget || 0).toLocaleString()}</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">Spent:</span>
-                      <span className="text-foreground">${t.spentBudget.toLocaleString()}</span>
+                      <span className="text-foreground">${(t.spentBudget || 0).toLocaleString()}</span>
                     </div>
                     <div className="flex items-center justify-between pt-1 border-t border-border/60">
                       <span className="text-muted-foreground font-bold">Remaining:</span>
-                      <span className="font-bold text-primary">${t.remainingBudget.toLocaleString()}</span>
+                      <span className="font-bold text-primary">${(t.remainingBudget || 0).toLocaleString()}</span>
                     </div>
                   </div>
 
@@ -296,13 +296,13 @@ export const BudgetsOverviewPage: React.FC = () => {
                         </span>
                       </td>
                       <td className={`p-3 font-mono font-bold ${isDeduction ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
-                        {isDeduction ? '-' : '+'}${txn.amount.toLocaleString()}
+                        {isDeduction ? '-' : '+'}${(txn.amount || 0).toLocaleString()}
                       </td>
                       <td className="p-3 font-mono text-muted-foreground">
-                        ${txn.balanceBefore.toLocaleString()}
+                        ${(txn.balanceBefore || 0).toLocaleString()}
                       </td>
                       <td className="p-3 font-mono font-semibold text-foreground">
-                        ${txn.balanceAfter.toLocaleString()}
+                        ${(txn.balanceAfter || 0).toLocaleString()}
                       </td>
                       <td className="p-3 text-muted-foreground">
                         {txn.performedByUserName}
