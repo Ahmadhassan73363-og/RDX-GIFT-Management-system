@@ -36,6 +36,13 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate, onOpen
   const requests = dataService.getRequests();
   const auditLogs = dataService.getAuditLogs().slice(0, 6);
 
+  // Sort requests by Date descending (newest date at start)
+  const sortedRequests = [...requests].sort((a, b) => {
+    const dateA = a.date || a.requestDate || (a.createdAt ? a.createdAt.split('T')[0] : '');
+    const dateB = b.date || b.requestDate || (b.createdAt ? b.createdAt.split('T')[0] : '');
+    return dateB.localeCompare(dateA);
+  });
+
   // Financial calculations
   const totalAllocated = teams.reduce((acc, t) => acc + (t.allocatedBudget || 0), 0);
   const totalSpent = teams.reduce((acc, t) => acc + (t.spentBudget || 0), 0);
@@ -350,44 +357,74 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate, onOpen
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto -mx-2 sm:mx-0 px-2 sm:px-0">
-              <table className="w-full text-left border-collapse text-xs min-w-[560px]">
+              <table className="w-full text-left border-collapse text-xs min-w-[760px]">
                 <thead>
-                  <tr className="border-b border-border/80 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-                    <th className="pb-3 pl-1">Request #</th>
-                    <th className="pb-3">Client / Company</th>
-                    <th className="pb-3">Team</th>
-                    <th className="pb-3">Value / Budget</th>
-                    <th className="pb-3">Status</th>
-                    <th className="pb-3 text-right pr-1">Priority</th>
+                  <tr className="border-b border-border/80 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider bg-muted/20">
+                    <th className="py-2.5 px-3 pl-3 text-primary font-bold">Date</th>
+                    <th className="py-2.5 px-3">Agent Name</th>
+                    <th className="py-2.5 px-3">Business Name</th>
+                    <th className="py-2.5 px-3">Category (Sample/Gift)</th>
+                    <th className="py-2.5 px-3">Invoice No</th>
+                    <th className="py-2.5 px-3">Sample SKU</th>
+                    <th className="py-2.5 px-3 text-center">Total Qty</th>
+                    <th className="py-2.5 px-3 text-right">Per Unit Cost</th>
+                    <th className="py-2.5 px-3 text-right">Total Cost</th>
+                    <th className="py-2.5 px-3 text-right pr-3">Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/40">
-                  {requests.slice(0, 5).map((req) => (
-                    <tr
-                      key={req.id}
-                      onClick={() => onNavigate(`/requests?id=${req.id}`)}
-                      className="hover:bg-muted/40 cursor-pointer transition-colors group"
-                    >
-                      <td className="py-3 pl-1 font-mono font-semibold text-primary">
-                        {req.trackingNumber}
-                      </td>
-                      <td className="py-3">
-                        <div className="font-medium text-foreground">{req.customerCompany}</div>
-                        <div className="text-[11px] text-muted-foreground">{req.customerName}</div>
-                      </td>
-                      <td className="py-3 text-muted-foreground">{req.teamName}</td>
-                      <td className="py-3 font-mono">
-                        <div className="font-semibold text-foreground">${(req.budgetAmount || 0).toLocaleString()}</div>
-                        <div className="text-[10px] text-muted-foreground line-through">${(req.giftValue || 0).toLocaleString()}</div>
-                      </td>
-                      <td className="py-3">
-                        <StatusBadge status={req.status} size="sm" />
-                      </td>
-                      <td className="py-3 text-right pr-1">
-                        <PriorityBadge priority={req.priority} size="sm" />
-                      </td>
-                    </tr>
-                  ))}
+                  {sortedRequests.slice(0, 7).map((req) => {
+                    const reqDate = req.date || req.requestDate || (req.createdAt ? req.createdAt.split('T')[0] : '—');
+                    const agentName = req.agentOrTeamName || req.customerName || req.submittedByUserName;
+                    const business = req.businessName || req.customerCompany;
+                    const category = req.typeOfFoc || req.giftCategory || 'Sample/Gift';
+                    const invoiceNo = req.systemInvoiceNo || '—';
+                    const sampleSku = req.sampleSku || req.giftItem || '—';
+                    const qty = req.sampleSkuQty || 1;
+                    const unitCost = Number(req.sampleSkuCostPerUnit) || (req.budgetAmount ? Math.round((req.budgetAmount / qty) * 100) / 100 : 0);
+                    const totalCost = Number(req.sampleSkuTotal) || req.budgetAmount || 0;
+
+                    return (
+                      <tr
+                        key={req.id}
+                        onClick={() => onNavigate(`/requests?id=${req.id}`)}
+                        className="hover:bg-muted/40 cursor-pointer transition-colors group"
+                      >
+                        <td className="py-3 px-3 font-mono font-bold text-primary whitespace-nowrap">
+                          {reqDate}
+                        </td>
+                        <td className="py-3 px-3 font-medium text-foreground whitespace-nowrap">
+                          {agentName}
+                        </td>
+                        <td className="py-3 px-3 text-foreground whitespace-nowrap">
+                          {business}
+                        </td>
+                        <td className="py-3 px-3 text-muted-foreground whitespace-nowrap">
+                          <span className="px-2 py-0.5 rounded-md bg-muted text-[10px] font-medium border border-border/50">
+                            {category}
+                          </span>
+                        </td>
+                        <td className="py-3 px-3 font-mono text-muted-foreground whitespace-nowrap">
+                          {invoiceNo}
+                        </td>
+                        <td className="py-3 px-3 text-foreground font-medium truncate max-w-[140px]" title={sampleSku}>
+                          {sampleSku}
+                        </td>
+                        <td className="py-3 px-3 text-center font-mono font-semibold">
+                          {qty}
+                        </td>
+                        <td className="py-3 px-3 text-right font-mono text-muted-foreground whitespace-nowrap">
+                          ${unitCost.toFixed(2)}
+                        </td>
+                        <td className="py-3 px-3 text-right font-mono font-bold text-foreground whitespace-nowrap">
+                          ${totalCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </td>
+                        <td className="py-3 px-3 text-right pr-3 whitespace-nowrap">
+                          <StatusBadge status={req.status} size="sm" />
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

@@ -91,19 +91,20 @@ export const RequestsListPage: React.FC<RequestsListPageProps> = ({
   }, [allRequests, searchQuery, teamFilter, statusFilter, priorityFilter, sortField, sortOrder, refreshKey]);
 
   const handleExportCSV = () => {
-    const headers = ['Tracking #', 'Client Name', 'Company', 'Team', 'Item / Sample', 'Value', 'Discount %', 'Budget Amount', 'Status', 'Priority', 'Date'];
+    const headers = ['Date', 'Agent Name', 'Business Name', 'Category (Sample/Gift)', 'Invoice No', 'Sample SKU', 'Total Quantity', 'Per Unit Cost', 'Total Cost', 'Status', 'Tracking #', 'Priority'];
     const rows = filteredRequests.map(r => [
-      r.trackingNumber,
-      `"${r.customerName}"`,
-      `"${r.customerCompany}"`,
-      `"${r.teamName}"`,
-      `"${r.giftItem}"`,
-      r.giftValue,
-      r.discountPercentage,
-      r.budgetAmount,
+      r.date || r.requestDate,
+      `"${r.agentOrTeamName || r.customerName || r.submittedByUserName}"`,
+      `"${r.businessName || r.customerCompany}"`,
+      `"${r.typeOfFoc || r.giftCategory || 'Sample/Gift'}"`,
+      r.systemInvoiceNo || '',
+      `"${r.sampleSku || r.giftItem}"`,
+      r.sampleSkuQty || 1,
+      r.sampleSkuCostPerUnit || (r.budgetAmount ? Math.round((r.budgetAmount / (r.sampleSkuQty || 1)) * 100) / 100 : 0),
+      r.sampleSkuTotal || r.budgetAmount,
       r.status,
-      r.priority,
-      r.requestDate
+      r.trackingNumber,
+      r.priority
     ]);
     const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
     const encodedUri = encodeURI(csvContent);
@@ -316,87 +317,85 @@ export const RequestsListPage: React.FC<RequestsListPageProps> = ({
       {viewMode === 'table' ? (
         <Card>
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
+            <table className="w-full text-left border-collapse text-xs min-w-[760px]">
               <thead>
                 <tr className="border-b border-border text-[11px] font-semibold text-muted-foreground uppercase tracking-wider bg-muted/20">
-                  <th className="p-3.5 pl-4">Tracking #</th>
-                  <th className="p-3.5">Customer / Company</th>
-                  <th className="p-3.5">Item / Sample & Category</th>
-                  <th className="p-3.5">Team</th>
-                  <th className="p-3.5">Retail / Discount</th>
-                  <th className="p-3.5">Budget Charge</th>
+                  <th className="p-3.5 pl-4 text-primary font-bold">Date</th>
+                  <th className="p-3.5">Agent Name</th>
+                  <th className="p-3.5">Business Name</th>
+                  <th className="p-3.5">Category</th>
+                  <th className="p-3.5">Invoice No</th>
+                  <th className="p-3.5">Sample SKU</th>
+                  <th className="p-3.5 text-center">Total Qty</th>
+                  <th className="p-3.5 text-right">Per Unit Cost</th>
+                  <th className="p-3.5 text-right">Total Cost</th>
                   <th className="p-3.5">Status</th>
-                  <th className="p-3.5">Shipment</th>
-                  <th className="p-3.5">Priority</th>
-                  <th className="p-3.5 text-right pr-4">Date</th>
+                  <th className="p-3.5 text-right pr-4">Tracking #</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/60">
                 {filteredRequests.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="p-8 text-center text-muted-foreground">
+                    <td colSpan={11} className="p-8 text-center text-muted-foreground">
                       No requests found matching your filter criteria.
                     </td>
                   </tr>
                 ) : (
-                  filteredRequests.map((req) => (
-                    <tr
-                      key={req.id}
-                      onClick={() => setSelectedRequestId(req.id)}
-                      className="hover:bg-muted/40 cursor-pointer transition-colors group"
-                    >
-                      <td className="p-3.5 pl-4 font-mono font-bold text-primary">
-                        {req.trackingNumber}
-                      </td>
-                      <td className="p-3.5">
-                        <div className="font-semibold text-foreground group-hover:text-primary transition-colors">
-                          {req.customerCompany}
-                        </div>
-                        <div className="text-[11px] text-muted-foreground">{req.customerName}</div>
-                      </td>
-                      <td className="p-3.5">
-                        <div className="text-foreground font-medium truncate max-w-[200px]">
-                          {req.sampleSku ? `${req.sampleSku}${req.sampleSkuQty ? ` (Qty: ${req.sampleSkuQty})` : ''}` : req.giftItem}
-                        </div>
-                        <div className="text-[10px] text-muted-foreground">{req.typeOfFoc || req.giftCategory}</div>
-                      </td>
-                      <td className="p-3.5 text-muted-foreground font-medium">
-                        {req.teamName}
-                      </td>
-                      <td className="p-3.5 font-mono">
-                        <div className="text-foreground">${(req.giftValue || 0).toLocaleString()}</div>
-                        <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">
-                          -{req.discountPercentage || 0}% off
-                        </div>
-                      </td>
-                      <td className="p-3.5 font-mono font-bold text-sm text-foreground">
-                        ${(req.budgetAmount || 0).toLocaleString()}
-                      </td>
-                      <td className="p-3.5">
-                        <StatusBadge status={req.status} size="sm" />
-                      </td>
-                      <td className="p-3.5">
-                        {/* Shipment status pill */}
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
-                          req.shipmentStatus === 'delivered'
-                            ? 'bg-blue-500/10 border-blue-500/30 text-blue-700 dark:text-blue-400'
-                            : req.shipmentStatus === 'ready_to_dispatch'
-                            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-400'
-                            : 'bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-400'
-                        }`}>
-                          {req.shipmentStatus === 'delivered' ? '📦 Delivered'
-                            : req.shipmentStatus === 'ready_to_dispatch' ? '✅ Ready'
-                            : '⏳ Pending'}
-                        </span>
-                      </td>
-                      <td className="p-3.5">
-                        <PriorityBadge priority={req.priority} size="sm" />
-                      </td>
-                      <td className="p-3.5 text-right pr-4 font-mono text-muted-foreground">
-                        {req.requestDate}
-                      </td>
-                    </tr>
-                  ))
+                  filteredRequests.map((req) => {
+                    const reqDate = req.date || req.requestDate || (req.createdAt ? req.createdAt.split('T')[0] : '—');
+                    const agentName = req.agentOrTeamName || req.customerName || req.submittedByUserName;
+                    const business = req.businessName || req.customerCompany;
+                    const category = req.typeOfFoc || req.giftCategory || 'Sample/Gift';
+                    const invoiceNo = req.systemInvoiceNo || '—';
+                    const sampleSku = req.sampleSku || req.giftItem || '—';
+                    const qty = req.sampleSkuQty || 1;
+                    const unitCost = Number(req.sampleSkuCostPerUnit) || (req.budgetAmount ? Math.round((req.budgetAmount / qty) * 100) / 100 : 0);
+                    const totalCost = Number(req.sampleSkuTotal) || req.budgetAmount || 0;
+
+                    return (
+                      <tr
+                        key={req.id}
+                        onClick={() => setSelectedRequestId(req.id)}
+                        className="hover:bg-muted/40 cursor-pointer transition-colors group"
+                      >
+                        <td className="p-3.5 pl-4 font-mono font-bold text-primary whitespace-nowrap">
+                          {reqDate}
+                        </td>
+                        <td className="p-3.5 font-medium text-foreground whitespace-nowrap">
+                          {agentName}
+                        </td>
+                        <td className="p-3.5 font-semibold text-foreground group-hover:text-primary transition-colors whitespace-nowrap">
+                          {business}
+                        </td>
+                        <td className="p-3.5 whitespace-nowrap">
+                          <span className="px-2 py-0.5 rounded-md bg-muted text-[10px] font-medium border border-border/50 text-muted-foreground">
+                            {category}
+                          </span>
+                        </td>
+                        <td className="p-3.5 font-mono text-muted-foreground whitespace-nowrap">
+                          {invoiceNo}
+                        </td>
+                        <td className="p-3.5 text-foreground font-medium truncate max-w-[180px]" title={sampleSku}>
+                          {sampleSku}
+                        </td>
+                        <td className="p-3.5 text-center font-mono font-semibold">
+                          {qty}
+                        </td>
+                        <td className="p-3.5 text-right font-mono text-muted-foreground whitespace-nowrap">
+                          ${unitCost.toFixed(2)}
+                        </td>
+                        <td className="p-3.5 text-right font-mono font-bold text-foreground whitespace-nowrap">
+                          ${totalCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </td>
+                        <td className="p-3.5 whitespace-nowrap">
+                          <StatusBadge status={req.status} size="sm" />
+                        </td>
+                        <td className="p-3.5 text-right pr-4 font-mono font-bold text-primary whitespace-nowrap">
+                          {req.trackingNumber}
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>
