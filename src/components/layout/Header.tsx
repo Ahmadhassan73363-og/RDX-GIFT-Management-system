@@ -9,7 +9,8 @@ import {
   Shield,
   LogOut,
   Mail,
-  ExternalLink
+  ExternalLink,
+  Menu
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -22,7 +23,7 @@ interface HeaderProps {
   onToggleSidebar?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onOpenCommandPalette }) => {
+export const Header: React.FC<HeaderProps> = ({ onOpenCommandPalette, onToggleSidebar }) => {
   const { currentUser, users, switchUser, roles } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { notifications, unreadCount, markAsRead, markAllAsRead, openEmailPreview } = useNotifications();
@@ -32,19 +33,30 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCommandPalette }) => {
   const [showNotifMenu, setShowNotifMenu] = useState(false);
 
   return (
-    <header className="sticky top-0 z-30 flex items-center justify-between h-16 px-4 sm:px-6 bg-card/85 backdrop-blur-md border-b border-border/80 transition-colors">
-      {/* Left: Branding & Search shortcut */}
-      <div className="flex items-center gap-3 sm:gap-4">
-        <div className="flex items-center gap-2.5">
+    <header className="sticky top-0 z-30 flex items-center justify-between h-16 px-3 sm:px-6 bg-card/85 backdrop-blur-md border-b border-border/80 transition-colors shrink-0">
+      {/* Left: Hamburger (mobile) + Branding & Search shortcut */}
+      <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+        {/* Mobile Hamburger Toggle */}
+        <button
+          type="button"
+          onClick={onToggleSidebar}
+          className="md:hidden p-2 -ml-1 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors focus:outline-none"
+          title="Open Menu"
+          aria-label="Toggle navigation menu"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+
+        <div className="flex items-center gap-2.5 min-w-0">
           {/* Logo: white bg in light mode so red logo pops; dark bg container in dark mode */}
-          <div className="w-9 h-9 rounded-xl overflow-hidden bg-black flex items-center justify-center shadow-sm border border-border/40">
+          <div className="w-9 h-9 rounded-xl overflow-hidden bg-black flex items-center justify-center shadow-sm border border-border/40 shrink-0">
             <img src="/rdx-logo.png" alt="RDX" className="w-8 h-8 object-contain" />
           </div>
-          <div className="hidden md:block">
-            <h1 className="text-sm font-bold text-foreground leading-tight tracking-tight">
+          <div className="hidden sm:block truncate">
+            <h1 className="text-sm font-bold text-foreground leading-tight tracking-tight truncate">
               {settings.branding.companyName}
             </h1>
-            <p className="text-[11px] text-muted-foreground font-medium">
+            <p className="text-[11px] text-muted-foreground font-medium truncate">
               {settings.branding.appTitle}
             </p>
           </div>
@@ -104,7 +116,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCommandPalette }) => {
           </button>
 
           {showNotifMenu && (
-            <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-card border border-border shadow-xl z-50 overflow-hidden animate-fade-in">
+            <div className="absolute right-0 mt-2 w-[calc(100vw-1.5rem)] sm:w-96 max-w-sm rounded-2xl bg-card border border-border shadow-xl z-50 overflow-hidden animate-fade-in">
               <div className="p-3.5 border-b border-border/80 flex items-center justify-between bg-muted/20">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold text-foreground uppercase tracking-wider">
@@ -198,7 +210,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCommandPalette }) => {
           </button>
 
           {showUserMenu && (
-            <div className="absolute right-0 mt-2 w-72 rounded-2xl bg-card border border-border shadow-xl z-50 overflow-hidden animate-fade-in">
+            <div className="absolute right-0 mt-2 w-[calc(100vw-1.5rem)] sm:w-72 max-w-xs rounded-2xl bg-card border border-border shadow-xl z-50 overflow-hidden animate-fade-in">
               <div className="p-3.5 border-b border-border/80 bg-muted/20">
                 <p className="text-xs font-bold text-foreground">Interactive Persona Switcher</p>
                 <p className="text-[11px] text-muted-foreground mt-0.5">

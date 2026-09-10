@@ -22,9 +22,10 @@ import { dataService } from '../../services/dataService';
 interface SidebarProps {
   currentPath: string;
   onNavigate: (path: string) => void;
+  onCloseMobile?: () => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ currentPath, onNavigate }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ currentPath, onNavigate, onCloseMobile }) => {
   const { hasPermission, currentUser } = useAuth();
   const { settings } = useSystem();
 
@@ -109,7 +110,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentPath, onNavigate }) => 
   ];
 
   return (
-    <aside className="w-64 shrink-0 h-[calc(100vh-4rem)] sticky top-16 bg-sidebar border-r border-sidebar-border flex flex-col justify-between p-4 select-none overflow-y-auto">
+    <aside className="w-full h-full bg-sidebar flex flex-col justify-between p-4 select-none overflow-y-auto">
       <div className="space-y-6">
         {/* Navigation list */}
         <div className="space-y-1">
@@ -127,7 +128,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentPath, onNavigate }) => 
             return (
               <button
                 key={item.path}
-                onClick={() => onNavigate(item.path)}
+                onClick={() => {
+                  onNavigate(item.path);
+                  if (onCloseMobile) onCloseMobile();
+                }}
                 className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all group ${
                   isActive
                     ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/25 font-semibold'

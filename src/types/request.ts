@@ -83,6 +83,11 @@ export interface GiftRequest {
 
   // Multiple SKU Breakdown
   skuItems?: SkuItem[];
+
+  // Dynamic Form Linkage
+  formId?: string;
+  formTitle?: string;
+  customFields?: Record<string, any>;
   
   // Budget snapshot at submission / evaluation
   teamRemainingBudgetAtRequest: number;

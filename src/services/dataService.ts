@@ -539,6 +539,11 @@ class DataService {
       priority?: RequestPriority;
       deliveryTargetDate?: string;
       attachments?: { name: string; size: number; type: string }[];
+
+      // Dynamic Form Linkage
+      formId?: string;
+      formTitle?: string;
+      customFields?: Record<string, any>;
     },
     actor: User
   ): GiftRequest {
@@ -636,6 +641,9 @@ class DataService {
       })),
       comments: [],
       approvalHistory: [],
+      formId: payload.formId,
+      formTitle: payload.formTitle,
+      customFields: payload.customFields,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
@@ -938,7 +946,12 @@ class DataService {
 
   // --- Dynamic Forms Builder ---
   public getForms(): FormSchema[] {
-    return storage.get<FormSchema[]>('forms', INITIAL_FORMS);
+    const forms = storage.get<FormSchema[]>('forms', INITIAL_FORMS);
+    if (!forms.some(f => f.id === 'form-std-sample-foc')) {
+      forms.unshift(INITIAL_FORMS[0]);
+      storage.set('forms', forms);
+    }
+    return forms;
   }
 
   public getFormById(id: string): FormSchema | undefined {

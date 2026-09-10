@@ -18,7 +18,8 @@ import {
   Printer,
   Truck,
   PackageCheck,
-  PackageOpen
+  PackageOpen,
+  FormInput
 } from 'lucide-react';
 import { GiftRequest, RequestStatus, ShipmentStatus } from '../../types/request';
 import { useAuth } from '../../context/AuthContext';
@@ -307,6 +308,50 @@ export const RequestDetailPage: React.FC<RequestDetailPageProps> = ({ requestId,
             </CardContent>
           </Card>
 
+          {/* Dynamic Form Schema Custom Fields (if submitted via custom or dynamic form) */}
+          {request.customFields && Object.keys(request.customFields).length > 0 && (
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <FormInput className="w-4 h-4 text-primary" />
+                      <span>Form Submission: {request.formTitle || 'Custom Dynamic Form'}</span>
+                    </CardTitle>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Captured field values linked to this authorized template
+                    </p>
+                  </div>
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-primary/10 text-primary font-mono">
+                    Template Data
+                  </span>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  {Object.entries(request.customFields).map(([label, val]) => (
+                    <div key={label} className="p-3 rounded-xl bg-muted/30 border border-border/70 space-y-1">
+                      <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider block">
+                        {label}
+                      </span>
+                      <div className="text-xs font-semibold text-foreground break-words">
+                        {typeof val === 'boolean' ? (val ? 'Yes' : 'No') : (
+                          typeof val === 'string' && val.startsWith('data:image') ? (
+                            <img src={val} alt={label} className="h-14 border rounded-lg bg-white p-1" />
+                          ) : (
+                            typeof val === 'string' && val.startsWith('TYPED_SIGNATURE:') ? (
+                              <span className="font-serif italic text-primary text-sm">/s/ {val.split(':')[1]}</span>
+                            ) : String(val || '—')
+                          )
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Multi-Level Approval Pipeline Visualizer */}
           <Card>
             <CardHeader>
@@ -329,12 +374,12 @@ export const RequestDetailPage: React.FC<RequestDetailPageProps> = ({ requestId,
                       <div className="relative flex flex-col items-center">
                         <div
                           className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${isRejectedHere
-                              ? 'bg-rose-500 text-white'
-                              : isPassed
-                                ? 'bg-emerald-500 text-white'
-                                : isCurrent
-                                  ? 'bg-primary text-white ring-4 ring-primary/20 animate-pulse'
-                                  : 'bg-muted text-muted-foreground border border-border'
+                            ? 'bg-rose-500 text-white'
+                            : isPassed
+                              ? 'bg-emerald-500 text-white'
+                              : isCurrent
+                                ? 'bg-primary text-white ring-4 ring-primary/20 animate-pulse'
+                                : 'bg-muted text-muted-foreground border border-border'
                             }`}
                         >
                           {isRejectedHere ? (

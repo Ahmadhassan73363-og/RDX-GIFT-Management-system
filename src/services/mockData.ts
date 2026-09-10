@@ -821,6 +821,103 @@ export const INITIAL_REQUESTS: GiftRequest[] = [
 
 export const INITIAL_FORMS: FormSchema[] = [
   {
+    id: 'form-std-sample-foc',
+    title: 'Standard Sample & FOC Request Form (Default)',
+    description: 'Universal operational form for submitting Free of Cost (FOC) products, promotional items, and multi-SKU sample requests.',
+    category: 'Samples & FOC',
+    version: 1,
+    isActive: true,
+    requiresBudgetApproval: true,
+    createdById: 'usr-1',
+    createdByName: 'Alexander Vance',
+    fields: [
+      {
+        id: 'f-date',
+        type: 'date',
+        name: 'date',
+        label: 'Date',
+        required: true,
+        helpText: 'Auto-fetched request date'
+      },
+      {
+        id: 'f-dept',
+        type: 'text',
+        name: 'department',
+        label: 'Department',
+        placeholder: 'e.g. Commercial Sales / Marketing',
+        required: true
+      },
+      {
+        id: 'f-agent',
+        type: 'text',
+        name: 'agentOrTeamName',
+        label: 'Agent / Team Name',
+        placeholder: 'e.g. John Doe / Apex Sales Team',
+        required: true
+      },
+      {
+        id: 'f-biz',
+        type: 'text',
+        name: 'businessName',
+        label: 'Business Name',
+        placeholder: 'e.g. Acme Corporation',
+        required: true
+      },
+      {
+        id: 'f-foc-type',
+        type: 'text',
+        name: 'typeOfFoc',
+        label: 'Type of FOC',
+        placeholder: 'e.g. Product Sample / Trial',
+        required: true
+      },
+      {
+        id: 'f-inv-no',
+        type: 'number',
+        name: 'systemInvoiceNo',
+        label: 'System Invoice no.',
+        placeholder: 'e.g. 109482',
+        required: false
+      },
+      {
+        id: 'f-sku',
+        type: 'text',
+        name: 'sampleSku',
+        label: 'Sample SKU Code',
+        placeholder: 'e.g. SKU-RDX-8821',
+        required: true
+      },
+      {
+        id: 'f-qty',
+        type: 'number',
+        name: 'sampleSkuQty',
+        label: 'Sample Quantity',
+        placeholder: 'e.g. 5',
+        required: true,
+        min: 1
+      },
+      {
+        id: 'f-unit-cost',
+        type: 'currency',
+        name: 'sampleSkuCostPerUnit',
+        label: 'Cost Per Unit ($)',
+        placeholder: 'e.g. 25.00',
+        required: true,
+        min: 0
+      },
+      {
+        id: 'f-reason',
+        type: 'textarea',
+        name: 'reason',
+        label: 'Business Rationale & Deal Justification',
+        placeholder: 'Explain how this sample/request supports relationship building, evaluations, contract renewals, or corporate milestones...',
+        required: false
+      }
+    ],
+    createdAt: '2026-01-01T00:00:00Z',
+    updatedAt: '2026-01-01T00:00:00Z'
+  },
+  {
     id: 'form-std-gift',
     title: 'Standard Discounted Customer Request',
     description: 'Universal workflow form for submitting corporate packages, customer loyalty perks, and partner discounts.',
