@@ -159,26 +159,8 @@ export const RequestsListPage: React.FC<RequestsListPageProps> = ({
               <TableIcon className="w-3.5 h-3.5" />
               <span>Table</span>
             </button>
-            <button
-              onClick={() => setViewMode('kanban')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
-                viewMode === 'kanban' ? 'bg-card text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'
-              }`}
-              title="Kanban Board View"
-            >
-              <Kanban className="w-3.5 h-3.5" />
-              <span>Kanban</span>
-            </button>
-            <button
-              onClick={() => setViewMode('calendar')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
-                viewMode === 'calendar' ? 'bg-card text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'
-              }`}
-              title="Calendar Schedule View"
-            >
-              <CalendarIcon className="w-3.5 h-3.5" />
-              <span>Calendar</span>
-            </button>
+           
+            
           </div>
 
           <Button

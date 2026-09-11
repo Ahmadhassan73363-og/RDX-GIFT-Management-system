@@ -123,44 +123,9 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
           {/* Quick Persona Logins with Credentials Directory */}
           <div className="pt-4 border-t border-border/60 space-y-2.5">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                Demo Credentials Directory
-              </span>
-              <span className="text-[10px] text-muted-foreground">Click to auto-fill</span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-              {users.map((u) => (
-                <button
-                  key={u.id}
-                  type="button"
-                  onClick={() => handleSelectRoleCredentials(u)}
-                  className={`flex items-center gap-2 p-2 rounded-xl border text-left transition-all group ${
-                    email === u.email
-                      ? 'border-primary bg-primary/5 ring-1 ring-primary/30'
-                      : 'border-border/80 bg-muted/20 hover:bg-muted hover:border-primary/40'
-                  }`}
-                  title={`Click to fill: ${u.email} / ${u.password || 'admin@123'}`}
-                >
-                  <img
-                    src={u.avatar}
-                    alt={u.name}
-                    className="w-7 h-7 rounded-lg object-cover shrink-0 ring-1 ring-border"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center justify-between">
-                      <p className="font-semibold text-foreground truncate text-[11px] group-hover:text-primary">
-                        {u.roleName}
-                      </p>
-                      <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-background border border-border text-muted-foreground">
-                        {u.password || 'admin@123'}
-                      </span>
-                    </div>
-                    <p className="text-[10px] text-muted-foreground truncate font-mono">{u.email}</p>
-                  </div>
-                </button>
-              ))}
+              
+             
+           
             </div>
           </div>
         </div>

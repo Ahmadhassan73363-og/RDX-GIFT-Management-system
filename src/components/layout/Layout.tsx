@@ -22,7 +22,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPath, onNavigat
         onToggleSidebar={() => setIsMobileSidebarOpen(prev => !prev)}
       />
 
-      <div className="flex-1 flex overflow-hidden relative">
+      <div className="flex-1 flex overflow-hidden relative ">
         {/* Desktop Sidebar: Permanent, full height of content viewport */}
         <div className="hidden md:flex w-64 shrink-0 h-full border-r border-sidebar-border bg-sidebar overflow-hidden">
           <Sidebar currentPath={currentPath} onNavigate={onNavigate} />
@@ -66,10 +66,8 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPath, onNavigat
         )}
 
         {/* Main Content Viewport */}
-        <main className="flex-1 overflow-y-auto p-3 sm:p-6 lg:p-8">
-          <div className="max-w-7xl mx-auto space-y-6">
+        <main className="flex-1 overflow-y-auto p-3 sm:p-6 lg:p-4">
             {children}
-          </div>
         </main>
       </div>
 

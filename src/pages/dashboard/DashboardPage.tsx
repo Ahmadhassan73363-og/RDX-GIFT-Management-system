@@ -77,48 +77,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate, onOpen
   return (
     <div className="space-y-6">
       {/* Top Banner with Executive Greeting & Quick Actions */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary/95 via-indigo-600 to-indigo-700 text-white p-5 sm:p-7 lg:p-8 shadow-elevated">
-        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-          <div className="space-y-2 max-w-2xl">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/15 text-[11px] sm:text-xs font-semibold backdrop-blur-sm">
-              <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-              <span>Enterprise Budget Management Console</span>
-            </div>
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight">
-              Welcome back, {currentUser.name}
-            </h1>
-            <p className="text-xs sm:text-sm text-indigo-100 font-normal leading-relaxed">
-              Monitoring <strong className="text-white">{teams.length} teams</strong> and <strong className="text-white">${totalAllocated.toLocaleString()}</strong> in allocated corporate allowances for fiscal year 2026.
-            </p>
-          </div>
-
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 shrink-0 w-full sm:w-auto">
-            <Button
-              variant="glass"
-              size="md"
-              onClick={onOpenNewRequest}
-              leftIcon={<Plus className="w-4 h-4 text-primary" />}
-              className="bg-white text-slate-900 hover:bg-white/90 font-semibold justify-center w-full sm:w-auto shadow-sm"
-            >
-              New Request
-            </Button>
-            {hasPermission('approvals:approve') && (
-              <Button
-                variant="outline"
-                size="md"
-                onClick={() => onNavigate('/approvals')}
-                className="border-white/30 text-white hover:bg-white/10 justify-center w-full sm:w-auto"
-              >
-                Review Approvals ({pendingRequests})
-              </Button>
-            )}
-          </div>
-        </div>
-
-        {/* Decorative background glow circles */}
-        <div className="absolute -right-16 -top-16 w-64 h-64 bg-white/10 rounded-full blur-2xl pointer-events-none" />
-        <div className="absolute -left-16 -bottom-16 w-64 h-64 bg-indigo-400/20 rounded-full blur-3xl pointer-events-none" />
-      </div>
+ 
 
       {/* KPI Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
