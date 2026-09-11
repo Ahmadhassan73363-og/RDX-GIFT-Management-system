@@ -10,6 +10,7 @@ export type AuditActionType =
   | 'PERMISSION_CHANGE'
   | 'TEAM_CREATE'
   | 'TEAM_UPDATE'
+  | 'TEAM_DELETE'
   | 'BUDGET_ALLOCATE'
   | 'BUDGET_ADJUST'
   | 'BUDGET_OVERRIDE'

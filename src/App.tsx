@@ -8,6 +8,7 @@ import { LoginPage } from './pages/auth/LoginPage';
 import { DashboardPage } from './pages/dashboard/DashboardPage';
 import { RequestsListPage } from './pages/requests/RequestsListPage';
 import { ApprovalsQueuePage } from './pages/approvals/ApprovalsQueuePage';
+import { ShipmentTrackingPage } from './pages/shipments/ShipmentTrackingPage';
 import { TeamsListPage } from './pages/teams/TeamsListPage';
 import { BudgetsOverviewPage } from './pages/budgets/BudgetsOverviewPage';
 import { FormsListPage } from './pages/forms/FormsListPage';
@@ -66,6 +67,12 @@ const AppContent: React.FC = () => {
 
       {currentPath === '/approvals' && (
         <ApprovalsQueuePage
+          onNavigateToRequest={(id) => handleNavigate(`/requests?id=${id}`)}
+        />
+      )}
+
+      {currentPath === '/shipments' && (
+        <ShipmentTrackingPage
           onNavigateToRequest={(id) => handleNavigate(`/requests?id=${id}`)}
         />
       )}

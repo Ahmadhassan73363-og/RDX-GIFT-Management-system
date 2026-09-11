@@ -6,7 +6,8 @@ export type NotificationType =
   | 'BUDGET_LOW'
   | 'BUDGET_EXHAUSTED'
   | 'COMMENT_ADDED'
-  | 'FORM_ASSIGNED';
+  | 'FORM_ASSIGNED'
+  | 'SHIPMENT_UPDATED';
 
 export interface Notification {
   id: string;

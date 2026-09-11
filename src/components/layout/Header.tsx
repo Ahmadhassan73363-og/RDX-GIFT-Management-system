@@ -24,7 +24,7 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ onOpenCommandPalette, onToggleSidebar }) => {
-  const { currentUser, users, switchUser, roles } = useAuth();
+  const { currentUser, users, switchUser, roles, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { notifications, unreadCount, markAsRead, markAllAsRead, openEmailPreview } = useNotifications();
   const { settings } = useSystem();
@@ -259,12 +259,34 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCommandPalette, onToggleSi
                 })}
               </div>
 
-              <div className="p-2 border-t border-border/80 bg-muted/10 flex items-center justify-between text-[11px] text-muted-foreground px-3">
-                <span>Signed in as <strong>{currentUser.roleName}</strong></span>
+              <div className="p-2.5 border-t border-border/80 bg-muted/20 space-y-2">
+                <div className="flex items-center justify-between text-[11px] text-muted-foreground px-1">
+                  <span>Signed in as <strong>{currentUser.roleName}</strong></span>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowUserMenu(false);
+                    logout();
+                  }}
+                  className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-destructive hover:bg-destructive/90 text-destructive-foreground text-xs font-semibold shadow-xs transition-all cursor-pointer"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>Log Out to Login Page</span>
+                </button>
               </div>
             </div>
           )}
         </div>
+
+        {/* Header Direct Log Out Button */}
+        <button
+          onClick={logout}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-destructive/10 hover:bg-destructive/20 text-destructive text-xs font-semibold border border-destructive/20 transition-all cursor-pointer"
+          title="Sign out of current account"
+        >
+          <LogOut className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline">Log Out</span>
+        </button>
       </div>
     </header>
   );

@@ -24,6 +24,9 @@ export type Permission =
   // Reports
   | 'reports:view'
   | 'reports:export'
+  // Shipments
+  | 'shipments:view'
+  | 'shipments:manage'
   // Settings
   | 'settings:roles'
   | 'settings:teams'
@@ -53,8 +56,8 @@ export type DefaultRoleName =
   | 'Super Admin'
   | 'Admin'
   | 'Executive'
-  | 'Manager'
+  | 'Assistant'
   | 'HOD'
   | 'President'
-  | 'Assistant'
+  | 'Shipment Manager'
   | 'Viewer';

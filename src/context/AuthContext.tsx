@@ -45,17 +45,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const currentRole = roles.find(r => r.id === currentUser.roleId);
   const permissions = currentRole ? currentRole.permissions : [];
 
-  const login = (email: string): boolean => {
-    const found = users.find(u => u.email.toLowerCase() === email.toLowerCase());
-    if (found) {
-      if (found.status === 'disabled') {
-        throw new Error('This account has been deactivated by an administrator.');
-      }
-      switchUser(found.id);
-      setIsAuthenticated(true);
-      return true;
+  const login = (email: string, password?: string): boolean => {
+    const found = users.find(u => u.email.toLowerCase() === email.trim().toLowerCase());
+    if (!found) {
+      throw new Error('No account found matching this corporate email address.');
     }
-    return false;
+    if (found.status === 'disabled') {
+      throw new Error('This account has been deactivated by an administrator.');
+    }
+    if (found.password && password && found.password !== password) {
+      throw new Error('Invalid password. Please check your credentials.');
+    }
+    switchUser(found.id);
+    setIsAuthenticated(true);
+    return true;
   };
 
   const logout = () => {

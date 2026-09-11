@@ -43,14 +43,13 @@ export const ReportsPage: React.FC = () => {
   const totalVolume = filteredRequests.length;
   const totalRetailValue = filteredRequests.reduce((sum, r) => sum + (r.giftValue || 0), 0);
   const totalBudgetSpent = filteredRequests.reduce((sum, r) => sum + (r.budgetAmount || 0), 0);
-  const totalDiscountSavings = totalRetailValue - totalBudgetSpent;
-  const averageDiscount = totalRetailValue > 0 ? Math.round((totalDiscountSavings / totalRetailValue) * 100) : 0;
+  const avgRequestValue = totalVolume > 0 ? Math.round(totalBudgetSpent / totalVolume) : 0;
   const approvedCount = filteredRequests.filter(r => r.status === 'approved' || r.status === 'completed').length;
   const approvalRate = totalVolume > 0 ? Math.round((approvedCount / totalVolume) * 100) : 0;
 
   // Export functions
   const handleExportCSV = () => {
-    const headers = ['Tracking #', 'Client', 'Company', 'Team', 'Category', 'Item / Sample', 'Retail Value ($)', 'Budget Charged ($)', 'Discount (%)', 'Status', 'Date'];
+    const headers = ['Tracking #', 'Client', 'Company', 'Team', 'Category', 'Item / Sample', 'Retail Value ($)', 'Budget Charged ($)', 'Status', 'Date'];
     const rows = filteredRequests.map(r => [
       r.trackingNumber,
       `"${r.customerName}"`,
@@ -60,7 +59,6 @@ export const ReportsPage: React.FC = () => {
       `"${r.giftItem}"`,
       r.giftValue,
       r.budgetAmount,
-      r.discountPercentage,
       r.status,
       r.requestDate
     ]);
@@ -93,7 +91,7 @@ export const ReportsPage: React.FC = () => {
             Executive Financial & Workflow Reporting
           </h2>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Audit-ready cross-departmental analytics, discount efficiency metrics, and SLA compliance
+            Audit-ready cross-departmental analytics, fiscal allocation metrics, and SLA compliance
           </p>
         </div>
 
@@ -205,12 +203,12 @@ export const ReportsPage: React.FC = () => {
 
         <Card className="p-5">
           <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Corporate Savings Achieved
+            Average Request Value
           </span>
           <div className="text-2xl font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-2">
-            ${(totalDiscountSavings || 0).toLocaleString()}
+            ${(avgRequestValue || 0).toLocaleString()}
           </div>
-          <p className="text-[11px] text-muted-foreground mt-1">{averageDiscount}% avg discount from retail price</p>
+          <p className="text-[11px] text-muted-foreground mt-1">Per approved allocation</p>
         </Card>
 
         <Card className="p-5">
@@ -249,7 +247,6 @@ export const ReportsPage: React.FC = () => {
                   <th className="p-3">Team</th>
                   <th className="p-3">Item / Sample</th>
                   <th className="p-3">Retail Value</th>
-                  <th className="p-3">Discount</th>
                   <th className="p-3">Charged Budget</th>
                   <th className="p-3">Status</th>
                   <th className="p-3 pr-4 text-right">Date</th>
@@ -272,9 +269,6 @@ export const ReportsPage: React.FC = () => {
                     </td>
                     <td className="p-3 font-mono text-muted-foreground">
                       ${(req.giftValue || 0).toLocaleString()}
-                    </td>
-                    <td className="p-3 font-mono text-emerald-600 dark:text-emerald-400 font-bold">
-                      -{req.discountPercentage || 0}%
                     </td>
                     <td className="p-3 font-mono font-bold text-foreground">
                       ${(req.budgetAmount || 0).toLocaleString()}

@@ -19,7 +19,8 @@ import {
   Truck,
   PackageCheck,
   PackageOpen,
-  FormInput
+  FormInput,
+  RotateCcw
 } from 'lucide-react';
 import { GiftRequest, RequestStatus, ShipmentStatus } from '../../types/request';
 import { useAuth } from '../../context/AuthContext';
@@ -48,6 +49,10 @@ export const RequestDetailPage: React.FC<RequestDetailPageProps> = ({ requestId,
   const [signatureData, setSignatureData] = useState('');
   const [actionError, setActionError] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isAppealModalOpen, setIsAppealModalOpen] = useState(false);
+  const [appealReason, setAppealReason] = useState('');
+  const [appealError, setAppealError] = useState('');
+  const [isShipmentModalOpen, setIsShipmentModalOpen] = useState(false);
 
   if (!request || !team) {
     return (
@@ -58,10 +63,11 @@ export const RequestDetailPage: React.FC<RequestDetailPageProps> = ({ requestId,
     );
   }
 
-  const isPending = ['submitted', 'under_review', 'pending_executive', 'pending_manager', 'pending_hod', 'pending_assistant', 'pending_president'].includes(request.status);
+  const isPending = ['submitted', 'under_review', 'pending_executive', 'pending_manager', 'pending_hod', 'pending_assistant', 'pending_president', 'appealed'].includes(request.status);
   const canApprove = hasPermission('approvals:approve');
   const canOverride = hasPermission('budgets:override');
   const isSuperAdmin = currentUser.roleName === 'Super Admin';
+  const isShipmentManager = currentUser.roleName === 'Shipment Manager' || hasPermission('shipments:manage');
   const hasSufficientBudget = team.remainingBudget >= request.budgetAmount;
 
   // 4-Stage approval pipeline: Executive -> Manager -> HOD -> President
@@ -73,13 +79,32 @@ export const RequestDetailPage: React.FC<RequestDetailPageProps> = ({ requestId,
   ];
 
   const shipmentStatusConfig: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
-    pending: { label: 'Pending', color: 'bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-400', icon: <Clock className="w-4 h-4" /> },
-    ready_to_dispatch: { label: 'Ready to Dispatch', color: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-400', icon: <PackageCheck className="w-4 h-4" /> },
-    delivered: { label: 'Delivered', color: 'bg-blue-500/10 border-blue-500/30 text-blue-700 dark:text-blue-400', icon: <Truck className="w-4 h-4" /> },
+    approved: { label: 'Approved – Ready', color: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-400', icon: <CheckCircle2 className="w-4 h-4" /> },
+    in_process: { label: 'In Process', color: 'bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-400', icon: <Clock className="w-4 h-4" /> },
+    dispatched: { label: 'Dispatched', color: 'bg-blue-500/10 border-blue-500/30 text-blue-700 dark:text-blue-400', icon: <Truck className="w-4 h-4" /> },
+    delivered: { label: 'Delivered', color: 'bg-teal-500/10 border-teal-500/30 text-teal-700 dark:text-teal-400', icon: <PackageCheck className="w-4 h-4" /> },
+    pending: { label: 'Pending Approval', color: 'bg-slate-500/10 border-slate-500/30 text-slate-700 dark:text-slate-400', icon: <Clock className="w-4 h-4" /> },
   };
 
-  const handleMarkDelivered = () => {
-    dataService.updateShipmentStatus(request.id, 'delivered', currentUser);
+  const handleExecuteAppeal = () => {
+    setAppealError('');
+    if (!appealReason.trim()) {
+      setAppealError('Please provide a reason for your appeal.');
+      return;
+    }
+    try {
+      dataService.appealRequest(request.id, appealReason.trim(), currentUser);
+      setIsAppealModalOpen(false);
+      setAppealReason('');
+      onUpdate();
+    } catch (err: any) {
+      setAppealError(err.message || 'Error submitting appeal');
+    }
+  };
+
+  const handleUpdateShipmentStatus = (newStatus: ShipmentStatus) => {
+    dataService.updateShipmentStatus(request.id, newStatus, currentUser);
+    setIsShipmentModalOpen(false);
     onUpdate();
   };
 
@@ -207,6 +232,34 @@ export const RequestDetailPage: React.FC<RequestDetailPageProps> = ({ requestId,
                 </Button>
               )}
             </>
+          )}
+
+          {/* Appeal button for rejected requests */}
+          {request.status === 'rejected' &&
+            (currentUser.id === request.submittedByUserId || isSuperAdmin) && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => { setAppealReason(''); setAppealError(''); setIsAppealModalOpen(true); }}
+                leftIcon={<RotateCcw className="w-3.5 h-3.5" />}
+                className="border-orange-400 text-orange-600 hover:bg-orange-50 dark:text-orange-400 dark:hover:bg-orange-900/20"
+              >
+                Appeal Rejection
+              </Button>
+            )
+          }
+
+          {/* Shipment Manager: update shipment status */}
+          {request.status === 'approved' && isShipmentManager && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsShipmentModalOpen(true)}
+              leftIcon={<Truck className="w-3.5 h-3.5" />}
+              className="border-blue-400 text-blue-600 hover:bg-blue-50 dark:text-blue-400"
+            >
+              Update Shipment
+            </Button>
           )}
         </div>
       </div>
@@ -500,10 +553,6 @@ export const RequestDetailPage: React.FC<RequestDetailPageProps> = ({ requestId,
                   <span className="font-semibold text-foreground">${(request.giftValue || 0).toLocaleString()}</span>
                 </div>
                 <div className="flex items-center justify-between pb-2 border-b border-border/80">
-                  <span className="text-muted-foreground">Corporate Discount:</span>
-                  <span className="font-semibold text-emerald-600 dark:text-emerald-400">-{request.discountPercentage || 0}%</span>
-                </div>
-                <div className="flex items-center justify-between pb-2 border-b border-border/80">
                   <span className="text-muted-foreground font-bold">Total Budget Charged:</span>
                   <span className="font-bold text-sm text-primary">${(request.budgetAmount || 0).toLocaleString()}</span>
                 </div>
@@ -567,30 +616,45 @@ export const RequestDetailPage: React.FC<RequestDetailPageProps> = ({ requestId,
                 );
               })()}
 
-              {request.shipmentStatus === 'pending' && (
+              {request.status !== 'approved' ? (
                 <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  Shipment is pending final approval. Status will auto-update to <strong>Ready to Dispatch</strong> once all stages pass.
+                  Shipment will be initiated automatically once final approval sign-off is completed.
                 </p>
-              )}
-              {request.shipmentStatus === 'ready_to_dispatch' && (
-                <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  All approvals cleared. Package is ready to dispatch.
-                </p>
-              )}
-              {request.shipmentStatus === 'delivered' && (
-                <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  Package has been delivered to the recipient.
-                </p>
-              )}
+              ) : (
+                <>
+                  {request.shipmentStatus === 'approved' && (
+                    <p className="text-[11px] text-muted-foreground leading-relaxed">
+                      Approved by leadership. Ready for logistics dispatch queue.
+                    </p>
+                  )}
+                  {request.shipmentStatus === 'in_process' && (
+                    <p className="text-[11px] text-muted-foreground leading-relaxed">
+                      Package is currently being assembled and prepared for dispatch.
+                    </p>
+                  )}
+                  {request.shipmentStatus === 'dispatched' && (
+                    <p className="text-[11px] text-muted-foreground leading-relaxed">
+                      Package is in transit with courier.
+                    </p>
+                  )}
+                  {request.shipmentStatus === 'delivered' && (
+                    <p className="text-[11px] text-muted-foreground leading-relaxed">
+                      Package has been confirmed delivered to the recipient.
+                    </p>
+                  )}
 
-              {isSuperAdmin && request.shipmentStatus === 'ready_to_dispatch' && (
-                <button
-                  onClick={handleMarkDelivered}
-                  className="w-full mt-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition-colors"
-                >
-                  <Truck className="w-3.5 h-3.5" />
-                  Mark as Delivered
-                </button>
+                  {isShipmentManager && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsShipmentModalOpen(true)}
+                      leftIcon={<Truck className="w-3.5 h-3.5" />}
+                      className="w-full mt-2 border-primary/40 text-primary hover:bg-primary/10"
+                    >
+                      Update Shipment Status
+                    </Button>
+                  )}
+                </>
               )}
             </CardContent>
           </Card>
@@ -689,6 +753,98 @@ export const RequestDetailPage: React.FC<RequestDetailPageProps> = ({ requestId,
             >
               Confirm {actionType.replace(/_/g, ' ').toUpperCase()}
             </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Appeal Rejection Modal */}
+      <Modal
+        isOpen={isAppealModalOpen}
+        onClose={() => setIsAppealModalOpen(false)}
+        title="Appeal Rejected Request"
+        description="Provide a strong rationale to re-enter the approval pipeline"
+        maxWidth="md"
+      >
+        <div className="space-y-4">
+          {appealError && (
+            <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-xs">
+              {appealError}
+            </div>
+          )}
+          <div className="p-3.5 rounded-xl bg-orange-500/10 border border-orange-500/30 flex items-start gap-3">
+            <RotateCcw className="w-5 h-5 text-orange-600 shrink-0 mt-0.5" />
+            <div className="text-xs space-y-1">
+              <p className="font-bold text-foreground">Submitting an Appeal</p>
+              <p className="text-muted-foreground leading-relaxed">
+                Your appeal will re-enter the approval pipeline at Stage 1 (Executive Review). Please provide a compelling business justification for reconsideration.
+              </p>
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Appeal Reason *
+            </label>
+            <textarea
+              rows={4}
+              value={appealReason}
+              onChange={(e) => setAppealReason(e.target.value)}
+              placeholder="Explain why this request should be reconsidered and any new information or context..."
+              className="w-full bg-background border border-input rounded-lg px-3.5 py-2 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
+          </div>
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
+            <Button variant="outline" size="sm" onClick={() => setIsAppealModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={handleExecuteAppeal}
+              leftIcon={<RotateCcw className="w-3.5 h-3.5" />}
+              className="bg-orange-600 hover:bg-orange-700"
+            >
+              Submit Appeal
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Shipment Status Update Modal (Shipment Manager only) */}
+      <Modal
+        isOpen={isShipmentModalOpen}
+        onClose={() => setIsShipmentModalOpen(false)}
+        title="Update Shipment Status"
+        description="Shipment Manager exclusive — transition the logistics status"
+        maxWidth="sm"
+      >
+        <div className="space-y-3">
+          <p className="text-xs text-muted-foreground">Current status: <strong>{shipmentStatusConfig[request.shipmentStatus || 'approved']?.label}</strong></p>
+          <div className="grid grid-cols-1 gap-2">
+            {(['approved', 'in_process', 'dispatched', 'delivered'] as ShipmentStatus[]).map(status => {
+              const cfg = shipmentStatusConfig[status];
+              const isCurrent = (request.shipmentStatus || 'approved') === status;
+              return (
+                <button
+                  key={status}
+                  onClick={() => handleUpdateShipmentStatus(status)}
+                  disabled={isCurrent}
+                  className={`flex items-center gap-3 p-3 rounded-xl border text-left text-xs transition-all ${
+                    isCurrent
+                      ? 'border-primary bg-primary/5 cursor-not-allowed opacity-60'
+                      : 'border-border hover:border-primary/50 hover:bg-muted/50 cursor-pointer'
+                  }`}
+                >
+                  <span className={`p-1.5 rounded-lg border ${cfg.color}`}>{cfg.icon}</span>
+                  <div>
+                    <p className="font-semibold text-foreground">{cfg.label}</p>
+                    {isCurrent && <p className="text-[10px] text-muted-foreground">Current status</p>}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+          <div className="flex justify-end pt-2 border-t border-border">
+            <Button variant="outline" size="sm" onClick={() => setIsShipmentModalOpen(false)}>Close</Button>
           </div>
         </div>
       </Modal>

@@ -12,6 +12,7 @@ export interface User {
   title?: string;
   department?: string;
   status: UserStatus;
+  password?: string;
   phone?: string;
   emailVerified: boolean;
   lastLogin?: string;

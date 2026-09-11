@@ -37,30 +37,37 @@ export const UsersListPage: React.FC = () => {
   // User form fields
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('admin@123');
   const [roleId, setRoleId] = useState(roles[0]?.id || '');
   const [teamId, setTeamId] = useState(teams[0]?.id || '');
   const [title, setTitle] = useState('');
   const [department, setDepartment] = useState('Commercial Sales');
   const [userError, setUserError] = useState('');
 
+  // Delete User state
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [userDeleteError, setUserDeleteError] = useState('');
+
   // Role editing modal
   const [roleModalOpen, setRoleModalOpen] = useState(false);
   const [editingRole, setEditingRole] = useState<Role | null>(null);
   const [roleName, setRoleName] = useState('');
   const [roleDescription, setRoleDescription] = useState('');
-  const [roleColor, setRoleColor] = useState('#6366f1');
+  const [roleColor, setRoleColor] = useState('#b71234');
   const [rolePermissions, setRolePermissions] = useState<Permission[]>([]);
   const [roleError, setRoleError] = useState('');
 
-  const canCreateUser = hasPermission('users:create');
-  const canEditUser = hasPermission('users:edit');
-  const canDeleteUser = hasPermission('users:delete');
-  const canManageRoles = hasPermission('settings:roles');
+  const isSuperAdmin = currentUser.roleName === 'Super Admin';
+  const canCreateUser = hasPermission('users:create') || isSuperAdmin;
+  const canEditUser = hasPermission('users:edit') || isSuperAdmin;
+  const canDeleteUser = hasPermission('users:delete') || isSuperAdmin;
+  const canManageRoles = hasPermission('settings:roles') || isSuperAdmin;
 
   const handleOpenAddUser = () => {
     setEditingUser(null);
     setName('');
     setEmail('');
+    setPassword('admin@123');
     setRoleId(roles[0]?.id || '');
     setTeamId(teams[0]?.id || '');
     setTitle('Staff Member');
@@ -73,6 +80,7 @@ export const UsersListPage: React.FC = () => {
     setEditingUser(user);
     setName(user.name);
     setEmail(user.email);
+    setPassword(user.password || 'admin@123');
     setRoleId(user.roleId);
     setTeamId(user.teamId || teams[0]?.id || '');
     setTitle(user.title || '');
@@ -96,6 +104,7 @@ export const UsersListPage: React.FC = () => {
           id: editingUser ? editingUser.id : undefined,
           name: name.trim(),
           email: email.trim(),
+          password: password.trim() || 'admin@123',
           roleId,
           teamId,
           title: title.trim(),
@@ -119,10 +128,19 @@ export const UsersListPage: React.FC = () => {
     }
   };
 
-  const handleDeleteUser = (user: User) => {
-    if (confirm(`Are you sure you want to delete user ${user.name}?`)) {
-      dataService.deleteUser(user.id, currentUser);
+  const handlePromptDeleteUser = (user: User) => {
+    setUserDeleteError('');
+    setUserToDelete(user);
+  };
+
+  const handleConfirmDeleteUser = () => {
+    if (!userToDelete) return;
+    try {
+      dataService.deleteUser(userToDelete.id, currentUser);
+      setUserToDelete(null);
       refreshUserData();
+    } catch (err: any) {
+      setUserDeleteError(err.message || 'Error deleting user');
     }
   };
 
@@ -338,7 +356,7 @@ export const UsersListPage: React.FC = () => {
 
                           {canDeleteUser && !isCurrentUser && (
                             <button
-                              onClick={() => handleDeleteUser(u)}
+                              onClick={() => handlePromptDeleteUser(u)}
                               className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-muted rounded-lg"
                               title="Delete account"
                             >

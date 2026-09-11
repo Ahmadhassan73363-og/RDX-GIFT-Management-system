@@ -11,10 +11,11 @@ export type RequestStatus =
   | 'pending_president'
   | 'approved'
   | 'rejected'
+  | 'appealed'
   | 'completed'
   | 'cancelled';
 
-export type ShipmentStatus = 'pending' | 'ready_to_dispatch' | 'delivered';
+export type ShipmentStatus = 'approved' | 'in_process' | 'dispatched' | 'delivered';
 
 export interface SkuItem {
   id: string;
@@ -68,6 +69,7 @@ export interface GiftRequest {
 
   // Shipment Lifecycle Field
   shipmentStatus?: ShipmentStatus;
+  deliveredAt?: string;
 
   // Specific FOC Sample Tracking Fields
   date?: string;

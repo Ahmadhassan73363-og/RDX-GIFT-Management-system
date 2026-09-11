@@ -210,15 +210,11 @@ export const ApprovalsQueuePage: React.FC<ApprovalsQueuePageProps> = ({ onNaviga
                     <p className="text-[11px] text-muted-foreground font-mono">Team: {req.teamName}</p>
                   </div>
 
-                  {/* Financial & Discount Metrics */}
+                  {/* Financial Metrics */}
                   <div className="p-3 rounded-xl bg-muted/40 border border-border/80 space-y-1.5 font-mono">
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">Retail Value:</span>
                       <span className="font-semibold text-foreground">${req.giftValue.toLocaleString()}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-emerald-600 dark:text-emerald-400">
-                      <span>Discount Applied:</span>
-                      <span className="font-bold">-{req.discountPercentage}%</span>
                     </div>
                     <div className="flex items-center justify-between pt-1 border-t border-border/60 font-bold">
                       <span className="text-primary">Budget Deduct:</span>

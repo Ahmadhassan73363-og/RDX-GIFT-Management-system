@@ -13,24 +13,29 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
   const { login, users, switchUser } = useAuth();
   const { settings } = useSystem();
 
-  const [email, setEmail] = useState('alexander.vance@enterprise.com');
-  const [password, setPassword] = useState('••••••••••••');
+  const [email, setEmail] = useState('admin@gmail.com');
+  const [password, setPassword] = useState('admin@123');
   const [error, setError] = useState('');
   const [forgotSent, setForgotSent] = useState(false);
+  const [showCredentialsModal, setShowCredentialsModal] = useState(false);
 
   const handleStandardLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     try {
-      const ok = login(email);
+      const ok = login(email, password);
       if (ok) {
         onLoginSuccess();
-      } else {
-        setError('No account found matching this corporate email address.');
       }
     } catch (err: any) {
       setError(err.message || 'Authentication failed');
     }
+  };
+
+  const handleSelectRoleCredentials = (u: any) => {
+    setEmail(u.email);
+    setPassword(u.password || 'admin@123');
+    setError('');
   };
 
   const handleQuickPersona = (userId: string) => {
@@ -40,9 +45,9 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col justify-center items-center p-4 sm:p-6 relative overflow-hidden">
-      {/* Background ambient lighting */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/15 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+      {/* Background ambient lighting in RDX crimson red */}
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#b71234]/15 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#b71234]/10 rounded-full blur-3xl pointer-events-none" />
 
       <div className="w-full max-w-md space-y-6 relative z-10">
         {/* Branding header */}
@@ -115,34 +120,44 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
             </Button>
           </form>
 
-          {/* Quick Persona Logins for instant evaluation */}
+          {/* Quick Persona Logins with Credentials Directory */}
           <div className="pt-4 border-t border-border/60 space-y-2.5">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
                 <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                Quick Test Personas
+                Demo Credentials Directory
               </span>
-              <span className="text-[10px] text-muted-foreground">Instant RBAC login</span>
+              <span className="text-[10px] text-muted-foreground">Click to auto-fill</span>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              {users.slice(0, 6).map((u) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+              {users.map((u) => (
                 <button
                   key={u.id}
                   type="button"
-                  onClick={() => handleQuickPersona(u.id)}
-                  className="flex items-center gap-2 p-2 rounded-xl border border-border/80 bg-muted/20 hover:bg-muted hover:border-primary/40 text-left transition-all group"
+                  onClick={() => handleSelectRoleCredentials(u)}
+                  className={`flex items-center gap-2 p-2 rounded-xl border text-left transition-all group ${
+                    email === u.email
+                      ? 'border-primary bg-primary/5 ring-1 ring-primary/30'
+                      : 'border-border/80 bg-muted/20 hover:bg-muted hover:border-primary/40'
+                  }`}
+                  title={`Click to fill: ${u.email} / ${u.password || 'admin@123'}`}
                 >
                   <img
                     src={u.avatar}
                     alt={u.name}
-                    className="w-6 h-6 rounded-md object-cover shrink-0"
+                    className="w-7 h-7 rounded-lg object-cover shrink-0 ring-1 ring-border"
                   />
                   <div className="min-w-0 flex-1">
-                    <p className="font-semibold text-foreground truncate text-[11px] group-hover:text-primary">
-                      {u.name.split(' ')[0]}
-                    </p>
-                    <p className="text-[10px] text-muted-foreground truncate">{u.roleName}</p>
+                    <div className="flex items-center justify-between">
+                      <p className="font-semibold text-foreground truncate text-[11px] group-hover:text-primary">
+                        {u.roleName}
+                      </p>
+                      <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-background border border-border text-muted-foreground">
+                        {u.password || 'admin@123'}
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground truncate font-mono">{u.email}</p>
                   </div>
                 </button>
               ))}

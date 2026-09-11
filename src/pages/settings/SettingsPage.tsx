@@ -39,7 +39,6 @@ export const SettingsPage: React.FC = () => {
   const [warningThreshold, setWarningThreshold] = useState(settings.budgetRules.warningThresholdPercent);
   const [criticalThreshold, setCriticalThreshold] = useState(settings.budgetRules.criticalThresholdPercent);
   const [requireOverride, setRequireOverride] = useState(settings.budgetRules.requireExecutiveOverrideWhenExceeded);
-  const [maxDiscount, setMaxDiscount] = useState(settings.budgetRules.maxGiftDiscountAllowedPercent);
 
   // Status configs state
   const [statusConfigs, setStatusConfigs] = useState([...settings.statusConfigs]);
@@ -58,7 +57,6 @@ export const SettingsPage: React.FC = () => {
         warningThresholdPercent: Number(warningThreshold),
         criticalThresholdPercent: Number(criticalThreshold),
         requireExecutiveOverrideWhenExceeded: requireOverride,
-        maxGiftDiscountAllowedPercent: Number(maxDiscount)
       },
       maxAttachmentSizeMb: Number(maxAttachmentMb),
       statusConfigs
@@ -224,16 +222,6 @@ export const SettingsPage: React.FC = () => {
                 helperText="Deductions beyond this level automatically freeze unless authorized by override"
               />
             </div>
-
-            <Input
-              label="Maximum Allowable Discount Rate (%)"
-              type="number"
-              min="0"
-              max="100"
-              value={maxDiscount}
-              onChange={(e) => setMaxDiscount(Number(e.target.value))}
-              helperText="Compliance cap for discounted requests without special board dispensation"
-            />
 
             <div className="p-4 rounded-xl bg-muted/40 border border-border flex items-center justify-between">
               <div>

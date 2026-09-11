@@ -107,6 +107,47 @@ class DataService {
         }
       });
     }
+
+    // Role synchronization: ensure all 7 INITIAL_ROLES exist and system roles have full permissions
+    const storedRoles = storage.get<Role[]>('roles', INITIAL_ROLES);
+    const updatedRoles = INITIAL_ROLES.map(initRole => {
+      const existing = storedRoles.find(r => r.id === initRole.id || r.name === initRole.name);
+      if (!existing) return initRole;
+      if (existing.isSystem) {
+        return {
+          ...existing,
+          permissions: initRole.permissions,
+          color: initRole.color,
+          name: initRole.name,
+          description: initRole.description
+        };
+      }
+      return existing;
+    });
+    storedRoles.forEach(r => {
+      if (!updatedRoles.some(u => u.id === r.id)) {
+        updatedRoles.push(r);
+      }
+    });
+    storage.set('roles', updatedRoles);
+
+    // User synchronization: ensure all 7 INITIAL_USERS exist with credentials and assigned roles
+    const storedUsers = storage.get<User[]>('users', INITIAL_USERS);
+    const mergedUsers = [...storedUsers];
+    INITIAL_USERS.forEach(initUser => {
+      const idx = mergedUsers.findIndex(u => u.id === initUser.id || u.email.toLowerCase() === initUser.email.toLowerCase());
+      if (idx >= 0) {
+        mergedUsers[idx] = {
+          ...mergedUsers[idx],
+          password: initUser.password || 'admin@123',
+          roleId: initUser.roleId,
+          roleName: initUser.roleName
+        };
+      } else {
+        mergedUsers.push(initUser);
+      }
+    });
+    storage.set('users', mergedUsers);
   }
 
 
@@ -251,6 +292,7 @@ class DataService {
         title: userData.title || 'Staff Member',
         department: userData.department || 'Operations',
         status: userData.status || 'active',
+        password: userData.password || 'admin@123',
         phone: userData.phone || '',
         emailVerified: true,
         createdAt: new Date().toISOString()
@@ -276,9 +318,12 @@ class DataService {
   }
 
   public deleteUser(userId: string, actor: User) {
+    if (userId === actor.id) {
+      throw new Error('You cannot delete your own active user account.');
+    }
     let users = this.getUsers();
     const user = users.find(u => u.id === userId);
-    if (!user) return;
+    if (!user) throw new Error('User not found');
     users = users.filter(u => u.id !== userId);
     storage.set('users', users);
     api.deleteUser(userId).catch(() => {});
@@ -332,8 +377,9 @@ class DataService {
   }
 
   public hasPermission(user: User, permission: Permission): boolean {
+    if (user.roleName === 'Super Admin' || user.id === 'usr-1') return true;
     const roles = this.getRoles();
-    const role = roles.find(r => r.id === user.roleId);
+    const role = roles.find(r => r.id === user.roleId || r.name === user.roleName);
     if (!role) return false;
     return role.permissions.includes(permission);
   }
@@ -411,6 +457,27 @@ class DataService {
     storage.set('teams', teams);
     api.saveTeam(savedTeam).catch(() => {});
     return savedTeam;
+  }
+
+  public deleteTeam(teamId: string, actor: User) {
+    let teams = this.getTeams();
+    const team = teams.find(t => t.id === teamId);
+    if (!team) throw new Error('Team not found');
+
+    teams = teams.filter(t => t.id !== teamId);
+    storage.set('teams', teams);
+    api.deleteTeam(teamId).catch(() => {});
+
+    // Update associated users
+    const users = this.getUsers().map(u => {
+      if (u.teamId === teamId) {
+        return { ...u, teamId: undefined, teamName: undefined };
+      }
+      return u;
+    });
+    storage.set('users', users);
+
+    this.logAudit('TEAM_DELETE', 'Team', teamId, `Deleted team ${team.name} (${team.code})`, actor);
   }
 
   public adjustTeamBudget(
@@ -614,7 +681,7 @@ class DataService {
       currentApprovalStepIndex: 1,
       totalApprovalSteps: 4,
       currentApproverRole: 'Executive',
-      shipmentStatus: 'pending',
+      shipmentStatus: undefined,
       date: effectiveDate,
       department: payload.department || team.name,
       agentOrTeamName: payload.agentOrTeamName || actor.name,
@@ -838,7 +905,7 @@ class DataService {
     // FINAL APPROVAL REACHED (Step 4 completed)
     req.status = 'approved';
     req.approvedAmount = req.budgetAmount;
-    req.shipmentStatus = 'ready_to_dispatch';
+    req.shipmentStatus = 'approved';
     req.updatedAt = new Date().toISOString();
 
     // AUTOMATIC BUDGET DEDUCTION
@@ -917,27 +984,109 @@ class DataService {
     return req;
   }
 
+  public appealRequest(requestId: string, appealReason: string, actor: User): GiftRequest {
+    const requests = this.getRequests();
+    const req = requests.find(r => r.id === requestId);
+    if (!req) throw new Error('Request not found');
+    if (req.status !== 'rejected') throw new Error('Only rejected requests can be appealed.');
+    if (req.submittedByUserId !== actor.id && actor.roleName !== 'Super Admin') {
+      throw new Error('Only the original submitter or Super Admin can appeal this request.');
+    }
+
+    req.status = 'appealed';
+    req.currentApprovalStepIndex = 1;
+    req.currentApproverRole = 'Executive';
+    req.updatedAt = new Date().toISOString();
+
+    const comment = {
+      id: 'c-' + Date.now(),
+      userId: actor.id,
+      userName: actor.name,
+      userRole: actor.roleName,
+      content: `[APPEAL SUBMITTED] ${appealReason}`,
+      createdAt: new Date().toISOString()
+    };
+    req.comments.push(comment);
+
+    storage.set('requests', requests);
+    api.updateRequest(req.id, { status: req.status, currentApprovalStepIndex: req.currentApprovalStepIndex, comments: req.comments }).catch(() => {});
+
+    this.notify(
+      'all_executives',
+      `Appeal Filed: ${req.trackingNumber}`,
+      `${actor.name} has appealed the rejection of ${req.trackingNumber}. Reason: ${appealReason}`,
+      'REQUEST_SUBMITTED',
+      req.id,
+      'request',
+      `/approvals`
+    );
+
+    this.logAudit('REQUEST_APPROVE', 'GiftRequest', req.id, `Appeal submitted for ${req.trackingNumber} by ${actor.name}. Reason: ${appealReason}`, actor);
+    return req;
+  }
+
   public updateShipmentStatus(
     requestId: string,
-    shipmentStatus: ShipmentStatus,
-    actor: User
+    status: ShipmentStatus,
+    actor: User,
+    note?: string
   ): GiftRequest {
+    const isShipmentManager = actor.roleName === 'Shipment Manager' || actor.roleName === 'Super Admin';
+    if (!isShipmentManager) {
+      throw new Error('Unauthorized: Only the Shipment Manager role can update shipment status.');
+    }
+
     const requests = this.getRequests();
     const req = requests.find(r => r.id === requestId);
     if (!req) throw new Error('Request not found');
 
-    const oldStatus = req.shipmentStatus || 'pending';
-    req.shipmentStatus = shipmentStatus;
+    const previousStatus = req.shipmentStatus;
+    req.shipmentStatus = status;
     req.updatedAt = new Date().toISOString();
 
+    if (status === 'delivered') {
+      req.deliveredAt = new Date().toISOString();
+    }
+
+    const statusLabels: Record<ShipmentStatus, string> = {
+      approved: 'Approved',
+      in_process: 'In Process',
+      dispatched: 'Dispatched',
+      delivered: 'Delivered'
+    };
+
+    const commentContent = note
+      ? `[LOGISTICS UPDATE] Shipment status changed to "${statusLabels[status]}". Note: ${note}`
+      : `[LOGISTICS UPDATE] Shipment status changed to "${statusLabels[status]}"`;
+
+    const comment = {
+      id: 'c-' + Date.now(),
+      userId: actor.id,
+      userName: actor.name,
+      userRole: actor.roleName,
+      content: commentContent,
+      createdAt: new Date().toISOString()
+    };
+    req.comments.push(comment);
+
     storage.set('requests', requests);
-    api.updateRequest(req.id, { shipmentStatus }).catch(() => {});
+    api.updateRequest(req.id, { shipmentStatus: req.shipmentStatus, deliveredAt: req.deliveredAt, comments: req.comments }).catch(() => {});
+
+    this.notify(
+      req.submittedByUserId,
+      `Shipment Update: ${req.trackingNumber}`,
+      `Your gift shipment status has been updated to "${statusLabels[status]}".`,
+      'SHIPMENT_UPDATED',
+      req.id,
+      'request',
+      `/requests`
+    );
 
     this.logAudit(
       'SHIPMENT_STATUS_UPDATE',
       'GiftRequest',
       req.id,
-      `Changed shipment status of ${req.trackingNumber} from ${oldStatus} to ${shipmentStatus}`,
+      `Shipment status transitioned from ${previousStatus || 'none'} to ${status} by ${actor.name}${note ? ` (Note: ${note})` : ''}`,
       actor
     );
 

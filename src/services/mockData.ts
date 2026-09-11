@@ -59,6 +59,13 @@ export const PERMISSION_CATEGORIES: PermissionCategory[] = [
     ]
   },
   {
+    category: 'Shipments',
+    permissions: [
+      { key: 'shipments:view', label: 'View Shipment Tracking', description: 'Inspect live package logistics and tracking progress' },
+      { key: 'shipments:manage', label: 'Manage Shipment Status', description: 'Authorize and transition shipment statuses (approved, in process, dispatched, delivered)' }
+    ]
+  },
+  {
     category: 'Settings',
     permissions: [
       { key: 'settings:roles', label: 'Manage Roles & RBAC', description: 'Configure dynamic roles and permission matrices' },
@@ -77,16 +84,75 @@ export const INITIAL_ROLES: Role[] = [
     name: 'Super Admin',
     description: 'Unrestricted master access to all enterprise modules, overrides, and audit trails',
     isSystem: true,
-    color: '#6366f1',
+    color: '#b71234',
     permissions: [...ALL_PERMISSIONS],
+    createdAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'role-executive',
+    name: 'Executive',
+    description: 'Executive committee member responsible for Stage 1 sign-offs and team budget oversight',
+    isSystem: true,
+    color: '#dc2626',
+    permissions: [
+      'dashboard:view',
+      'users:view',
+      'forms:submit',
+      'approvals:approve',
+      'approvals:reject',
+      'approvals:request_changes',
+      'budgets:view',
+      'shipments:view',
+      'reports:view',
+      'reports:export'
+    ],
+    createdAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'role-assistant',
+    name: 'Assistant',
+    description: 'Executive Assistant validating operational documentation and conducting Stage 2 reviews',
+    isSystem: true,
+    color: '#0284c7',
+    permissions: [
+      'dashboard:view',
+      'users:view',
+      'forms:submit',
+      'approvals:approve',
+      'approvals:reject',
+      'approvals:request_changes',
+      'budgets:view',
+      'shipments:view',
+      'reports:view'
+    ],
+    createdAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'role-hod',
+    name: 'HOD',
+    description: 'Head of Department conducting Stage 3 departmental sign-offs and budget checks',
+    isSystem: true,
+    color: '#059669',
+    permissions: [
+      'dashboard:view',
+      'users:view',
+      'forms:submit',
+      'approvals:approve',
+      'approvals:reject',
+      'approvals:request_changes',
+      'budgets:view',
+      'shipments:view',
+      'reports:view',
+      'reports:export'
+    ],
     createdAt: '2026-01-01T00:00:00Z'
   },
   {
     id: 'role-president',
     name: 'President',
-    description: 'Executive leadership sign-off with budget override capability and report inspection',
+    description: 'Executive leadership final sign-off (Stage 4) with budget override authorization',
     isSystem: true,
-    color: '#8b5cf6',
+    color: '#7c3aed',
     permissions: [
       'dashboard:view',
       'users:view',
@@ -96,72 +162,23 @@ export const INITIAL_ROLES: Role[] = [
       'approvals:request_changes',
       'budgets:view',
       'budgets:override',
+      'shipments:view',
       'reports:view',
       'reports:export'
     ],
     createdAt: '2026-01-01T00:00:00Z'
   },
   {
-    id: 'role-executive',
-    name: 'Executive',
-    description: 'Executive committee member responsible for high-tier approvals and team budget reviews',
+    id: 'role-shipment-manager',
+    name: 'Shipment Manager',
+    description: 'Logistics controller with exclusive rights to transition package shipment statuses',
     isSystem: true,
-    color: '#06b6d4',
+    color: '#ea580c',
     permissions: [
       'dashboard:view',
       'users:view',
-      'forms:submit',
-      'approvals:approve',
-      'approvals:reject',
-      'approvals:request_changes',
-      'budgets:view',
-      'reports:view',
-      'reports:export'
-    ],
-    createdAt: '2026-01-01T00:00:00Z'
-  },
-  {
-    id: 'role-admin',
-    name: 'Admin',
-    description: 'Operational administrator managing teams, users, dynamic forms, and standard approvals',
-    isSystem: true,
-    color: '#3b82f6',
-    permissions: [
-      'dashboard:view',
-      'users:view',
-      'users:create',
-      'users:edit',
-      'forms:create',
-      'forms:edit',
-      'forms:delete',
-      'forms:submit',
-      'approvals:approve',
-      'approvals:reject',
-      'approvals:request_changes',
-      'budgets:view',
-      'budgets:increase',
-      'budgets:decrease',
-      'reports:view',
-      'reports:export',
-      'settings:teams',
-      'settings:categories'
-    ],
-    createdAt: '2026-01-01T00:00:00Z'
-  },
-  {
-    id: 'role-assistant',
-    name: 'Assistant',
-    description: 'Executive assistant validating documentation, discounts, and preparing approval summaries',
-    isSystem: true,
-    color: '#10b981',
-    permissions: [
-      'dashboard:view',
-      'users:view',
-      'forms:submit',
-      'approvals:approve',
-      'approvals:reject',
-      'approvals:request_changes',
-      'budgets:view',
+      'shipments:view',
+      'shipments:manage',
       'reports:view'
     ],
     createdAt: '2026-01-01T00:00:00Z'
@@ -169,13 +186,14 @@ export const INITIAL_ROLES: Role[] = [
   {
     id: 'role-viewer',
     name: 'Viewer',
-    description: 'Read-only stakeholder role with visibility into requests and general team reports',
+    description: 'Read-only stakeholder role with full visibility into tracking and general reports',
     isSystem: true,
     color: '#64748b',
     permissions: [
       'dashboard:view',
       'reports:view',
-      'users:view'
+      'users:view',
+      'shipments:view'
     ],
     createdAt: '2026-01-01T00:00:00Z'
   }
@@ -185,11 +203,12 @@ export const INITIAL_USERS: User[] = [
   {
     id: 'usr-1',
     name: 'Alexander Vance',
-    email: 'alexander.vance@enterprise.com',
+    email: 'admin@gmail.com',
+    password: 'admin@123',
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
     roleId: 'role-super-admin',
     roleName: 'Super Admin',
-    title: 'Chief Operations Officer',
+    title: 'Chief Operations Officer / Super Admin',
     department: 'Executive Leadership',
     status: 'active',
     phone: '+1 (555) 234-5678',
@@ -198,22 +217,9 @@ export const INITIAL_USERS: User[] = [
   },
   {
     id: 'usr-2',
-    name: 'Eleanor Sterling',
-    email: 'eleanor.sterling@enterprise.com',
-    avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80',
-    roleId: 'role-president',
-    roleName: 'President',
-    title: 'President & Managing Director',
-    department: 'Executive Leadership',
-    status: 'active',
-    phone: '+1 (555) 345-6789',
-    emailVerified: true,
-    createdAt: '2026-01-02T09:00:00Z'
-  },
-  {
-    id: 'usr-3',
     name: 'Marcus Brody',
-    email: 'marcus.brody@enterprise.com',
+    email: 'executive@rdx.com',
+    password: 'executive@123',
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
     roleId: 'role-executive',
     roleName: 'Executive',
@@ -227,13 +233,14 @@ export const INITIAL_USERS: User[] = [
     createdAt: '2026-01-03T10:00:00Z'
   },
   {
-    id: 'usr-4',
+    id: 'usr-3',
     name: 'Sophia Chen',
-    email: 'sophia.chen@enterprise.com',
+    email: 'assistant@rdx.com',
+    password: 'assistant@123',
     avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
     roleId: 'role-assistant',
     roleName: 'Assistant',
-    title: 'Executive Workflow Specialist',
+    title: 'Executive Assistant',
     department: 'Executive Office',
     status: 'active',
     phone: '+1 (555) 567-8901',
@@ -241,29 +248,16 @@ export const INITIAL_USERS: User[] = [
     createdAt: '2026-01-04T11:00:00Z'
   },
   {
-    id: 'usr-5',
-    name: 'Lucas Hayes',
-    email: 'lucas.hayes@enterprise.com',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
-    roleId: 'role-admin',
-    roleName: 'Admin',
-    title: 'Systems & Budget Administrator',
-    department: 'Operations & Finance',
-    status: 'active',
-    phone: '+1 (555) 678-9012',
-    emailVerified: true,
-    createdAt: '2026-01-05T12:00:00Z'
-  },
-  {
-    id: 'usr-6',
+    id: 'usr-4',
     name: 'David Miller',
-    email: 'david.miller@enterprise.com',
+    email: 'hod@rdx.com',
+    password: 'hod@123',
     avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80',
-    roleId: 'role-admin',
-    roleName: 'Admin',
+    roleId: 'role-hod',
+    roleName: 'HOD',
     teamId: 'team-sales',
     teamName: 'Sales Team',
-    title: 'Global Sales Director',
+    title: 'Head of Department - Commercial Sales',
     department: 'Commercial Sales',
     status: 'active',
     phone: '+1 (555) 789-0123',
@@ -271,31 +265,46 @@ export const INITIAL_USERS: User[] = [
     createdAt: '2026-01-06T13:00:00Z'
   },
   {
-    id: 'usr-7',
-    name: 'Sarah Jenkins',
-    email: 'sarah.jenkins@enterprise.com',
-    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
-    roleId: 'role-admin',
-    roleName: 'Admin',
-    teamId: 'team-marketing',
-    teamName: 'Marketing Team',
-    title: 'VP Brand Marketing',
-    department: 'Marketing & Partnerships',
+    id: 'usr-5',
+    name: 'Eleanor Sterling',
+    email: 'president@rdx.com',
+    password: 'president@123',
+    avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80',
+    roleId: 'role-president',
+    roleName: 'President',
+    title: 'President & Managing Director',
+    department: 'Executive Leadership',
     status: 'active',
-    phone: '+1 (555) 890-1234',
+    phone: '+1 (555) 345-6789',
     emailVerified: true,
-    createdAt: '2026-01-07T14:00:00Z'
+    createdAt: '2026-01-02T09:00:00Z'
   },
   {
-    id: 'usr-8',
+    id: 'usr-6',
+    name: 'Lucas Hayes',
+    email: 'shipment@rdx.com',
+    password: 'shipment@123',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
+    roleId: 'role-shipment-manager',
+    roleName: 'Shipment Manager',
+    title: 'Global Logistics & Shipment Manager',
+    department: 'Operations & Logistics',
+    status: 'active',
+    phone: '+1 (555) 678-9012',
+    emailVerified: true,
+    createdAt: '2026-01-05T12:00:00Z'
+  },
+  {
+    id: 'usr-7',
     name: 'Emma Watson',
-    email: 'emma.watson@enterprise.com',
+    email: 'viewer@rdx.com',
+    password: 'viewer@123',
     avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80',
     roleId: 'role-viewer',
     roleName: 'Viewer',
     teamId: 'team-hr',
     teamName: 'HR Team',
-    title: 'People Operations Analyst',
+    title: 'Compliance & Stakeholder Viewer',
     department: 'Human Resources',
     status: 'active',
     phone: '+1 (555) 901-2345',
@@ -310,16 +319,16 @@ export const INITIAL_TEAMS: Team[] = [
     name: 'Sales Team',
     code: 'SALES',
     description: 'Direct enterprise sales force delivering customized solutions to high-value prospects and clients.',
-    leadId: 'usr-6',
+    leadId: 'usr-4',
     leadName: 'David Miller',
-    leadEmail: 'david.miller@enterprise.com',
+    leadEmail: 'hod@rdx.com',
     allocatedBudget: 35000,
     spentBudget: 14200,
     remainingBudget: 20800,
     active: true,
     memberCount: 14,
     currency: '$',
-    color: '#3b82f6',
+    color: '#b71234',
     createdAt: '2026-01-01T00:00:00Z'
   },
   {
@@ -327,9 +336,9 @@ export const INITIAL_TEAMS: Team[] = [
     name: 'Marketing Team',
     code: 'MKTG',
     description: 'Field marketing and partner relationships, event swag packages, and campaign incentives.',
-    leadId: 'usr-7',
-    leadName: 'Sarah Jenkins',
-    leadEmail: 'sarah.jenkins@enterprise.com',
+    leadId: 'usr-2',
+    leadName: 'Marcus Brody',
+    leadEmail: 'executive@rdx.com',
     allocatedBudget: 25000,
     spentBudget: 18450,
     remainingBudget: 6550,
@@ -344,9 +353,9 @@ export const INITIAL_TEAMS: Team[] = [
     name: 'Corporate Team',
     code: 'CORP',
     description: 'Tier-1 strategic VIP clients, board hospitality, and high-level corporate packages.',
-    leadId: 'usr-3',
+    leadId: 'usr-2',
     leadName: 'Marcus Brody',
-    leadEmail: 'marcus.brody@enterprise.com',
+    leadEmail: 'executive@rdx.com',
     allocatedBudget: 50000,
     spentBudget: 29800,
     remainingBudget: 20200,
@@ -919,8 +928,8 @@ export const INITIAL_FORMS: FormSchema[] = [
   },
   {
     id: 'form-std-gift',
-    title: 'Standard Discounted Customer Request',
-    description: 'Universal workflow form for submitting corporate packages, customer loyalty perks, and partner discounts.',
+    title: 'Standard Customer Gift Request',
+    description: 'Universal workflow form for submitting corporate packages, customer loyalty perks, and client appreciation gifts.',
     category: 'Sales & Customer Relations',
     version: 1,
     isActive: true,
@@ -971,19 +980,9 @@ export const INITIAL_FORMS: FormSchema[] = [
         id: 'f-5',
         type: 'currency',
         name: 'giftValue',
-        label: 'Original Retail Value ($)',
+        label: 'Gift / Package Value ($)',
         placeholder: '1000',
         required: true
-      },
-      {
-        id: 'f-6',
-        type: 'number',
-        name: 'discountPercentage',
-        label: 'Corporate Discount (%)',
-        placeholder: '20',
-        required: true,
-        min: 0,
-        max: 100
       },
       {
         id: 'f-7',
@@ -1265,7 +1264,7 @@ export const INITIAL_SETTINGS: SystemSettings = {
     appTitle: 'Request & Budget Management System',
     currencySymbol: '$',
     currencyCode: 'USD',
-    primaryColorHex: '#4f46e5',
+    primaryColorHex: '#b71234',
     supportEmail: 'support@enterprise.com'
   },
   budgetRules: {
@@ -1305,6 +1304,7 @@ export const INITIAL_SETTINGS: SystemSettings = {
     { key: 'pending_president', label: 'Pending President', badgeBg: 'bg-purple-50 dark:bg-purple-950/50', badgeText: 'text-purple-700 dark:text-purple-400', badgeBorder: 'border-purple-200 dark:border-purple-900', description: 'Awaiting Presidential sign-off' },
     { key: 'approved', label: 'Approved', badgeBg: 'bg-emerald-50 dark:bg-emerald-950/50', badgeText: 'text-emerald-700 dark:text-emerald-400', badgeBorder: 'border-emerald-200 dark:border-emerald-900', description: 'Fully authorized, budget deducted' },
     { key: 'rejected', label: 'Rejected', badgeBg: 'bg-rose-50 dark:bg-rose-950/50', badgeText: 'text-rose-700 dark:text-rose-400', badgeBorder: 'border-rose-200 dark:border-rose-900', description: 'Decline recorded with reason' },
+    { key: 'appealed', label: 'Appealed', badgeBg: 'bg-orange-50 dark:bg-orange-950/50', badgeText: 'text-orange-700 dark:text-orange-400', badgeBorder: 'border-orange-200 dark:border-orange-900', description: 'Rejected request re-submitted for review' },
     { key: 'completed', label: 'Completed', badgeBg: 'bg-teal-50 dark:bg-teal-950/50', badgeText: 'text-teal-700 dark:text-teal-400', badgeBorder: 'border-teal-200 dark:border-teal-900', description: 'Procured and dispatched' },
     { key: 'cancelled', label: 'Cancelled', badgeBg: 'bg-zinc-100 dark:bg-zinc-800', badgeText: 'text-zinc-600 dark:text-zinc-400', badgeBorder: 'border-zinc-300 dark:border-zinc-700', description: 'Cancelled by submitter' }
   ],
@@ -1312,11 +1312,11 @@ export const INITIAL_SETTINGS: SystemSettings = {
     {
       id: 'chain-enterprise-default',
       name: 'Default 4-Stage Governance Chain',
-      description: 'Standard multi-level sign-off: Executive -> Manager -> HOD -> President',
+      description: 'Standard multi-level sign-off: Executive -> Assistant -> HOD -> President',
       isDefault: true,
       steps: [
         { id: 's-1', order: 1, roleId: 'role-executive', roleName: 'Executive', label: 'Executive Review', isRequired: true },
-        { id: 's-2', order: 2, roleId: 'role-manager', roleName: 'Manager', label: 'Manager Review', isRequired: true },
+        { id: 's-2', order: 2, roleId: 'role-assistant', roleName: 'Assistant', label: 'Executive Assistant Review', isRequired: true },
         { id: 's-3', order: 3, roleId: 'role-hod', roleName: 'HOD', label: 'HOD Review', isRequired: true },
         { id: 's-4', order: 4, roleId: 'role-president', roleName: 'President', label: 'President Sign-Off', isRequired: true }
       ]

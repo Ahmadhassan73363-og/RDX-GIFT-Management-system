@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Users2, Plus, Edit2, Shield, DollarSign, CheckCircle2, XCircle, ArrowRight } from 'lucide-react';
+import { Users2, Plus, Edit2, Trash2, AlertTriangle, Shield, DollarSign, CheckCircle2, XCircle, ArrowRight } from 'lucide-react';
 import { dataService } from '../../services/dataService';
 import { useAuth } from '../../context/AuthContext';
 import { Team } from '../../types/team';
@@ -19,6 +19,8 @@ export const TeamsListPage: React.FC<TeamsListPageProps> = ({ onNavigateToBudget
   const [teams, setTeams] = useState<Team[]>(() => dataService.getTeams());
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTeam, setEditingTeam] = useState<Team | null>(null);
+  const [teamToDelete, setTeamToDelete] = useState<Team | null>(null);
+  const [deleteError, setDeleteError] = useState('');
 
   // Form inputs
   const [teamName, setTeamName] = useState('');
@@ -29,10 +31,26 @@ export const TeamsListPage: React.FC<TeamsListPageProps> = ({ onNavigateToBudget
   const [teamColor, setTeamColor] = useState('#3b82f6');
   const [error, setError] = useState('');
 
-  const canManageTeams = hasPermission('settings:teams') || hasPermission('users:create');
+  const canManageTeams = hasPermission('settings:teams') || hasPermission('users:create') || currentUser.roleName === 'Super Admin';
 
   const refreshTeams = () => {
     setTeams(dataService.getTeams());
+  };
+
+  const handleDeleteTeam = (team: Team) => {
+    setDeleteError('');
+    setTeamToDelete(team);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!teamToDelete) return;
+    try {
+      dataService.deleteTeam(teamToDelete.id, currentUser);
+      setTeamToDelete(null);
+      refreshTeams();
+    } catch (err: any) {
+      setDeleteError(err.message || 'Error deleting team');
+    }
   };
 
   const handleOpenAdd = () => {
@@ -142,13 +160,22 @@ export const TeamsListPage: React.FC<TeamsListPageProps> = ({ onNavigateToBudget
                   </div>
 
                   {canManageTeams && (
-                    <button
-                      onClick={() => handleOpenEdit(team)}
-                      className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
-                      title="Edit team"
-                    >
-                      <Edit2 className="w-3.5 h-3.5" />
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => handleOpenEdit(team)}
+                        className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
+                        title="Edit team details"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteTeam(team)}
+                        className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
+                        title="Delete team"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   )}
                 </div>
 
@@ -294,6 +321,55 @@ export const TeamsListPage: React.FC<TeamsListPageProps> = ({ onNavigateToBudget
             </Button>
           </div>
         </form>
+      </Modal>
+
+      {/* Delete Team Confirmation Modal */}
+      <Modal
+        isOpen={!!teamToDelete}
+        onClose={() => setTeamToDelete(null)}
+        title="Delete Team Confirmation"
+        description="Permanently remove team from organization"
+        maxWidth="sm"
+      >
+        <div className="space-y-4">
+          {deleteError && (
+            <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-xs">
+              {deleteError}
+            </div>
+          )}
+
+          <div className="p-3.5 rounded-xl bg-destructive/10 border border-destructive/20 flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+            <div className="text-xs space-y-1">
+              <p className="font-bold text-foreground">
+                Are you sure you want to delete <span className="text-destructive font-mono">{teamToDelete?.name}</span>?
+              </p>
+              <p className="text-muted-foreground leading-relaxed">
+                This action will delete the team envelope and disassociate any assigned staff members. Historical audit records will be preserved.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-border">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setTeamToDelete(null)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              size="sm"
+              onClick={handleConfirmDelete}
+              leftIcon={<Trash2 className="w-4 h-4" />}
+            >
+              Confirm Delete
+            </Button>
+          </div>
+        </div>
       </Modal>
     </div>
   );

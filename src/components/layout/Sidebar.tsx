@@ -13,7 +13,9 @@ import {
   Settings,
   ShieldCheck,
   ChevronRight,
-  SendHorizontal
+  SendHorizontal,
+  Truck,
+  LogOut
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useSystem } from '../../context/SystemContext';
@@ -26,12 +28,17 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ currentPath, onNavigate, onCloseMobile }) => {
-  const { hasPermission, currentUser } = useAuth();
+  const { hasPermission, currentUser, logout } = useAuth();
   const { settings } = useSystem();
 
   // Get count of pending approvals for badge
   const pendingApprovalsCount = dataService.getRequests().filter(r =>
     ['pending_executive', 'pending_assistant', 'pending_president', 'submitted', 'under_review'].includes(r.status)
+  ).length;
+
+  // Active shipments count (not yet delivered)
+  const activeShipmentsCount = dataService.getRequests().filter(r =>
+    (r.status === 'approved' || r.shipmentStatus) && r.shipmentStatus !== 'delivered'
   ).length;
 
   // Active team budget snippet
@@ -54,6 +61,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentPath, onNavigate, onClo
       path: '/requests',
       icon: <FileText className="w-4 h-4" />,
       badge: 'Multi-View',
+    },
+    {
+      label: 'Shipment Tracking',
+      path: '/shipments',
+      icon: <Truck className="w-4 h-4" />,
+      count: activeShipmentsCount > 0 ? activeShipmentsCount : undefined,
+      countColor: 'bg-blue-600 text-white',
     },
     {
       label: 'Approvals Queue',
@@ -194,6 +208,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentPath, onNavigate, onClo
             <span>Limit: ${userTeamAllocated.toLocaleString()}</span>
           </div>
         </div>
+
+        {/* Sidebar Log Out Button */}
+        <button
+          onClick={logout}
+          className="w-full mt-3 flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-destructive/10 hover:bg-destructive/20 text-destructive text-xs font-semibold border border-destructive/20 transition-all cursor-pointer"
+          title="Sign out of current account"
+        >
+          <LogOut className="w-3.5 h-3.5" />
+          <span>Log Out</span>
+        </button>
       </div>
     </aside>
   );
